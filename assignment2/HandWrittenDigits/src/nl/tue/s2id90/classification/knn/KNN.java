@@ -35,6 +35,7 @@ public abstract class KNN<F extends Features,L> implements Classifier<F,L>  {
 
     public KNN(Map<F,L> trainingData, int k) throws IOException {
         this.trainingData = trainingData;
+        this.k            = k;
     }
 
     /**
