@@ -1,0 +1,383 @@
+BirthAsphyxia 
+yes           0.1 
+no            0.9       
+
+HypDistrib DuctFlow CardiacMixing 
+Equal      Lt_to_Rt None          0.95
+Unequal    Lt_to_Rt None          0.05 
+Equal      None     None          0.95 
+Unequal    None     None          0.05 
+Equal      Rt_to_Lt None          0.05 
+Unequal    Rt_to_Lt None          0.95 
+Equal      Lt_to_Rt Mild          0.95 
+Unequal    Lt_to_Rt Mild          0.05 
+Equal      None     Mild          0.95 
+Unequal    None     Mild          0.05 
+Equal      Rt_to_Lt Mild          0.5  
+Unequal    Rt_to_Lt Mild          0.5  
+Equal      Lt_to_Rt Complete      0.95 
+Unequal    Lt_to_Rt Complete      0.05 
+Equal      None     Complete      0.95 
+Unequal    None     Complete      0.05 
+Equal      Rt_to_Lt Complete      0.95 
+Unequal    Rt_to_Lt Complete      0.05 
+Equal      Lt_to_Rt Transp.       0.95 
+Unequal    Lt_to_Rt Transp.       0.05 
+Equal      None     Transp.       0.95 
+Unequal    None     Transp.       0.05 
+Equal      Rt_to_Lt Transp.       0.5  
+Unequal    Rt_to_Lt Transp.       0.5  
+
+HypoxiaInO2 CardiacMixing LungParench 
+Mild        None          Normal      0.93 
+Moderate    None          Normal      0.05 
+Severe      None          Normal      0.02 
+Mild        Mild          Normal      0.1  
+Moderate    Mild          Normal      0.8  
+Severe      Mild          Normal      0.1  
+Mild        Complete      Normal      0.1  
+Moderate    Complete      Normal      0.7  
+Severe      Complete      Normal      0.2  
+Mild        Transp.       Normal      0.02 
+Moderate    Transp.       Normal      0.18 
+Severe      Transp.       Normal      0.80 
+Mild        None          Congested   0.15 
+Moderate    None          Congested   0.80 
+Severe      None          Congested   0.05 
+Mild        Mild          Congested   0.10 
+Moderate    Mild          Congested   0.75 
+Severe      Mild          Congested   0.15 
+Mild        Complete      Congested   0.05 
+Moderate    Complete      Congested   0.65 
+Severe      Complete      Congested   0.30 
+Mild        Transp.       Congested   0.1  
+Moderate    Transp.       Congested   0.3  
+Severe      Transp.       Congested   0.6  
+Mild        None          Abnormal    0.7  
+Moderate    None          Abnormal    0.2  
+Severe      None          Abnormal    0.1  
+Mild        Mild          Abnormal    0.10 
+Moderate    Mild          Abnormal    0.65 
+Severe      Mild          Abnormal    0.25 
+Mild        Complete      Abnormal    0.1  
+Moderate    Complete      Abnormal    0.5  
+Severe      Complete      Abnormal    0.4  
+Mild        Transp.       Abnormal    0.02 
+Moderate    Transp.       Abnormal    0.18 
+Severe      Transp.       Abnormal    0.80 
+
+CO2    LungParench 
+Normal Normal      0.8  
+Low    Normal      0.1  
+High   Normal      0.1  
+Normal Congested   0.65 
+Low    Congested   0.05 
+High   Congested   0.30 
+Normal Abnormal    0.45 
+Low    Abnormal    0.05 
+High   Abnormal    0.50 
+
+ChestXray LungParench LungFlow 
+Normal    Normal      Normal   0.90 
+Oligaemic Normal      Normal   0.03 
+Plethoric Normal      Normal   0.03 
+Grd_Glass Normal      Normal   0.01 
+Asy/Patch Normal      Normal   0.03 
+Normal    Congested   Normal   0.05 
+Oligaemic Congested   Normal   0.02 
+Plethoric Congested   Normal   0.15 
+Grd_Glass Congested   Normal   0.70 
+Asy/Patch Congested   Normal   0.08 
+Normal    Abnormal    Normal   0.05 
+Oligaemic Abnormal    Normal   0.05 
+Plethoric Abnormal    Normal   0.05 
+Grd_Glass Abnormal    Normal   0.05 
+Asy/Patch Abnormal    Normal   0.80 
+Normal    Normal      Low      0.14 
+Oligaemic Normal      Low      0.80 
+Plethoric Normal      Low      0.02 
+Grd_Glass Normal      Low      0.02 
+Asy/Patch Normal      Low      0.02 
+Normal    Congested   Low      0.05 
+Oligaemic Congested   Low      0.22 
+Plethoric Congested   Low      0.08 
+Grd_Glass Congested   Low      0.50 
+Asy/Patch Congested   Low      0.15 
+Normal    Abnormal    Low      0.05 
+Oligaemic Abnormal    Low      0.15 
+Plethoric Abnormal    Low      0.05 
+Grd_Glass Abnormal    Low      0.05 
+Asy/Patch Abnormal    Low      0.70 
+Normal    Normal      High     0.15 
+Oligaemic Normal      High     0.01 
+Plethoric Normal      High     0.79 
+Grd_Glass Normal      High     0.04 
+Asy/Patch Normal      High     0.01 
+Normal    Congested   High     0.05 
+Oligaemic Congested   High     0.02 
+Plethoric Congested   High     0.40 
+Grd_Glass Congested   High     0.40 
+Asy/Patch Congested   High     0.13 
+Normal    Abnormal    High     0.24 
+Oligaemic Abnormal    High     0.33 
+Plethoric Abnormal    High     0.03 
+Grd_Glass Abnormal    High     0.34 
+Asy/Patch Abnormal    High     0.06 
+
+Grunting LungParench Sick 
+yes      Normal      yes  0.2  
+no       Normal      yes  0.8  
+yes      Congested   yes  0.4  
+no       Congested   yes  0.6  
+yes      Abnormal    yes  0.8  
+no       Abnormal    yes  0.2  
+yes      Normal      no   0.05 
+no       Normal      no   0.95 
+yes      Congested   no   0.2  
+no       Congested   no   0.8  
+yes      Abnormal    no   0.6  
+no       Abnormal    no   0.4  
+
+LVHreport LVH 
+yes       yes 0.9  
+no        yes 0.1  
+yes       no  0.05 
+no        no  0.95 
+
+LowerBodyO2 HypDistrib HypoxiaInO2 
+<5          Equal      Mild        0.1  
+5-12        Equal      Mild        0.3  
+12+         Equal      Mild        0.6  
+<5          Unequal    Mild        0.4  
+5-12        Unequal    Mild        0.5  
+12+         Unequal    Mild        0.1  
+<5          Equal      Moderate    0.3  
+5-12        Equal      Moderate    0.6  
+12+         Equal      Moderate    0.1  
+<5          Unequal    Moderate    0.50 
+5-12        Unequal    Moderate    0.45 
+12+         Unequal    Moderate    0.05 
+<5          Equal      Severe      0.5  
+5-12        Equal      Severe      0.4  
+12+         Equal      Severe      0.1  
+<5          Unequal    Severe      0.60 
+5-12        Unequal    Severe      0.35 
+12+         Unequal    Severe      0.05 
+
+RUQO2 HypoxiaInO2 
+<5    Mild        0.1 
+5-12  Mild        0.3 
+12+   Mild        0.6 
+<5    Moderate    0.3 
+5-12  Moderate    0.6 
+12+   Moderate    0.1 
+<5    Severe      0.5 
+5-12  Severe      0.4 
+12+   Severe      0.1 
+
+CO2Report CO2    
+<7.5      Normal 0.9 
+>=7.5     Normal 0.1 
+<7.5      Low    0.9 
+>=7.5     Low    0.1 
+<7.5      High   0.1 
+>=7.5     High   0.9 
+
+XrayReport ChestXray 
+Normal     Normal    0.80 
+Oligaemic  Normal    0.06 
+Plethoric  Normal    0.06 
+Grd_Glass  Normal    0.02 
+Asy/Patchy Normal    0.06 
+Normal     Oligaemic 0.10 
+Oligaemic  Oligaemic 0.80 
+Plethoric  Oligaemic 0.02 
+Grd_Glass  Oligaemic 0.02 
+Asy/Patchy Oligaemic 0.06 
+Normal     Plethoric 0.10 
+Oligaemic  Plethoric 0.02 
+Plethoric  Plethoric 0.80 
+Grd_Glass  Plethoric 0.02 
+Asy/Patchy Plethoric 0.06 
+Normal     Grd_Glass 0.08 
+Oligaemic  Grd_Glass 0.02 
+Plethoric  Grd_Glass 0.10 
+Grd_Glass  Grd_Glass 0.60 
+Asy/Patchy Grd_Glass 0.20 
+Normal     Asy/Patch 0.08 
+Oligaemic  Asy/Patch 0.02 
+Plethoric  Asy/Patch 0.10 
+Grd_Glass  Asy/Patch 0.10 
+Asy/Patchy Asy/Patch 0.70 
+
+Disease BirthAsphyxia 
+PFC     yes           0.20       
+TGA     yes           0.30       
+Fallot  yes           0.25       
+PAIVS   yes           0.15       
+TAPVD   yes           0.05       
+Lung    yes           0.05       
+PFC     no            0.03061224 
+TGA     no            0.33673469 
+Fallot  no            0.29591837 
+PAIVS   no            0.23469388 
+TAPVD   no            0.05102041 
+Lung    no            0.05102041 
+
+GruntingReport Grunting 
+yes            yes      0.8 
+no             yes      0.2 
+yes            no       0.1 
+no             no       0.9 
+
+Age        Disease Sick 
+0-3_days   PFC     yes  0.95 
+4-10_days  PFC     yes  0.03 
+11-30_days PFC     yes  0.02 
+0-3_days   TGA     yes  0.80 
+4-10_days  TGA     yes  0.15 
+11-30_days TGA     yes  0.05 
+0-3_days   Fallot  yes  0.70 
+4-10_days  Fallot  yes  0.15 
+11-30_days Fallot  yes  0.15 
+0-3_days   PAIVS   yes  0.80 
+4-10_days  PAIVS   yes  0.15 
+11-30_days PAIVS   yes  0.05 
+0-3_days   TAPVD   yes  0.80 
+4-10_days  TAPVD   yes  0.15 
+11-30_days TAPVD   yes  0.05 
+0-3_days   Lung    yes  0.90 
+4-10_days  Lung    yes  0.08 
+11-30_days Lung    yes  0.02 
+0-3_days   PFC     no   0.85 
+4-10_days  PFC     no   0.10 
+11-30_days PFC     no   0.05 
+0-3_days   TGA     no   0.7  
+4-10_days  TGA     no   0.2  
+11-30_days TGA     no   0.1  
+0-3_days   Fallot  no   0.25 
+4-10_days  Fallot  no   0.25 
+11-30_days Fallot  no   0.50 
+0-3_days   PAIVS   no   0.80 
+4-10_days  PAIVS   no   0.15 
+11-30_days PAIVS   no   0.05 
+0-3_days   TAPVD   no   0.7  
+4-10_days  TAPVD   no   0.2  
+11-30_days TAPVD   no   0.1  
+0-3_days   Lung    no   0.80 
+4-10_days  Lung    no   0.15 
+11-30_days Lung    no   0.05 
+
+LVH Disease 
+yes PFC     0.1  
+no  PFC     0.9  
+yes TGA     0.1  
+no  TGA     0.9  
+yes Fallot  0.1  
+no  Fallot  0.9  
+yes PAIVS   0.9  
+no  PAIVS   0.1  
+yes TAPVD   0.05 
+no  TAPVD   0.95 
+yes Lung    0.1  
+no  Lung    0.9  
+
+DuctFlow Disease 
+Lt_to_Rt PFC     0.15 
+None     PFC     0.05 
+Rt_to_Lt PFC     0.80 
+Lt_to_Rt TGA     0.1  
+None     TGA     0.8  
+Rt_to_Lt TGA     0.1  
+Lt_to_Rt Fallot  0.8  
+None     Fallot  0.2  
+Rt_to_Lt Fallot  0.0  
+Lt_to_Rt PAIVS   1.0  
+None     PAIVS   0.0  
+Rt_to_Lt PAIVS   0.0  
+Lt_to_Rt TAPVD   0.33 
+None     TAPVD   0.33 
+Rt_to_Lt TAPVD   0.34 
+Lt_to_Rt Lung    0.2  
+None     Lung    0.4  
+Rt_to_Lt Lung    0.4  
+
+CardiacMixing Disease 
+None          PFC     0.40 
+Mild          PFC     0.43 
+Complete      PFC     0.15 
+Transp.       PFC     0.02 
+None          TGA     0.02 
+Mild          TGA     0.09 
+Complete      TGA     0.09 
+Transp.       TGA     0.80 
+None          Fallot  0.02 
+Mild          Fallot  0.16 
+Complete      Fallot  0.80 
+Transp.       Fallot  0.02 
+None          PAIVS   0.01 
+Mild          PAIVS   0.02 
+Complete      PAIVS   0.95 
+Transp.       PAIVS   0.02 
+None          TAPVD   0.01 
+Mild          TAPVD   0.03 
+Complete      TAPVD   0.95 
+Transp.       TAPVD   0.01 
+None          Lung    0.40 
+Mild          Lung    0.53 
+Complete      Lung    0.05 
+Transp.       Lung    0.02 
+
+LungParench Disease 
+Normal      PFC     0.6  
+Congested   PFC     0.1  
+Abnormal    PFC     0.3  
+Normal      TGA     0.80 
+Congested   TGA     0.05 
+Abnormal    TGA     0.15 
+Normal      Fallot  0.80 
+Congested   Fallot  0.05 
+Abnormal    Fallot  0.15 
+Normal      PAIVS   0.80 
+Congested   PAIVS   0.05 
+Abnormal    PAIVS   0.15 
+Normal      TAPVD   0.1  
+Congested   TAPVD   0.6  
+Abnormal    TAPVD   0.3  
+Normal      Lung    0.03 
+Congested   Lung    0.25 
+Abnormal    Lung    0.72 
+
+LungFlow Disease 
+Normal   PFC     0.30 
+Low      PFC     0.65 
+High     PFC     0.05 
+Normal   TGA     0.20 
+Low      TGA     0.05 
+High     TGA     0.75 
+Normal   Fallot  0.15 
+Low      Fallot  0.80 
+High     Fallot  0.05 
+Normal   PAIVS   0.10 
+Low      PAIVS   0.85 
+High     PAIVS   0.05 
+Normal   TAPVD   0.3  
+Low      TAPVD   0.1  
+High     TAPVD   0.6  
+Normal   Lung    0.7  
+Low      Lung    0.1  
+High     Lung    0.2  
+
+Sick Disease 
+yes  PFC     0.4 
+no   PFC     0.6 
+yes  TGA     0.3 
+no   TGA     0.7 
+yes  Fallot  0.2 
+no   Fallot  0.8 
+yes  PAIVS   0.3 
+no   PAIVS   0.7 
+yes  TAPVD   0.7 
+no   TAPVD   0.3 
+yes  Lung    0.7 
+no   Lung    0.3 

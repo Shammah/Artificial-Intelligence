@@ -1,0 +1,7 @@
+# This file should contain a list of all fully implemented classes of the
+# DraughtsPlugin interface that you wish to make available to
+# the AICompetition tool. One class per line.
+#
+# In most cases you only need to replace NN by your group's number.
+#
+nl.tue.s2id90.group43.MyDraughtsPlugin
