@@ -6,14 +6,23 @@
 package nl.tue.s2id90.classification.knn;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import nl.tue.s2id90.classification.Classifier;
+import nl.tue.s2id90.classification.ConfusionMatrixPanel;
 import nl.tue.s2id90.classification.data.Features;
+import nl.tue.s2id90.classification.data.digits.HandWrittenDigits;
+import nl.tue.s2id90.classification.data.digits.LabeledImage;
+import nl.tue.s2id90.classification.data.digits.features.Doubles;
+import nl.tue.s2id90.classification.data.digits.features.ImageFeatures;
 
 /**
  * K-nearest neighbor classifier.
  * <pre>
- *{@code 
+ *{@code
  *            // read handwritten digits training data
  *            List<LabeledImage> trainingData = HandWrittenDigits.getTrainingData(15000, true);
  *            Map<ImageFeatures<Double>,Byte> trainingDataset = new HashMap<>();
@@ -45,7 +54,7 @@ public abstract class KNN<F extends Features,L> implements Classifier<F,L>  {
      * A typical implementation extends this class to implement this method.
      * For instance, using inner classes :
      * <pre>
-     *{@code 
+     *{@code
      *             // create a KNN object for features <code>MyFeatures</code>
      *             // and Label type MyLabel.
      *             KNN classifier = new KNN<MyFeatures,MyLabel>(trainingDataset) {
@@ -55,11 +64,11 @@ public abstract class KNN<F extends Features,L> implements Classifier<F,L>  {
      *                     // using f0.get(i), and f1.get(i)
      *                 }
      *             };
-     
+
      *}
      *</pre>
      * Or a separate class: <pre>
-     *{@code 
+     *{@code
      *             public class MyKNN extends KNN<MyFeatures,MyLabel> {
      *                  public MyKNN(Map<MyFeatures,MyLabel> trainingData) {
      *                       super(trainingData);
@@ -69,20 +78,20 @@ public abstract class KNN<F extends Features,L> implements Classifier<F,L>  {
      *                     // compute the distances between f0 and f1
      *                     // using f0.get(i), and f1.get(i)
      *                 }
-     *             };     
+     *             };
      *}
      * </pre>
-     * @param f0 
+     * @param f0
      * @param f1
      * @return distance between the two features
      **/
     abstract double distance(F f0, F f1);
 
     /**
-     * 
+     *
      * @param v
-     * @return 
-     * @see Classifier#classify(Features) 
+     * @return
+     * @see Classifier#classify(Features)
      */
     @Override
     abstract public L classify(F v);
@@ -94,11 +103,28 @@ public abstract class KNN<F extends Features,L> implements Classifier<F,L>  {
     @Override
     abstract public double errorRate(Map<F, L> testData);
 
-    
+
     /**
      * @param testData
-     * @see Classifier#getConfusionMatrix(Map) 
+     * @see Classifier#getConfusionMatrix(Map)
      */
     @Override
-    abstract public Map<L, Map<L, Integer>> getConfusionMatrix(Map<F, L> testData);    
+    abstract public Map<L, Map<L, Integer>> getConfusionMatrix(Map<F, L> testData);
+
+    public static void main(String[] args) throws IOException {
+        Map<ImageFeatures<Double>, Byte> trainingDataset, testDataset;
+        List<LabeledImage> trainingImages = null, testImages = null;
+        trainingImages = HandWrittenDigits.getTrainingData(15000, true);
+        testImages = HandWrittenDigits.getTestData();
+        trainingDataset = new HashMap<>();
+        for (LabeledImage image : trainingImages) {
+            trainingDataset.put(new Doubles(image), image.getLabel());
+        }
+        testDataset = new HashMap<>();
+        for (LabeledImage image : testImages) {
+            testDataset.put(new Doubles(image), image.getLabel());
+        }
+        KNNDigits knn = new KNNDigits(trainingDataset, 5);
+        new ConfusionMatrixPanel(null, knn.getConfusionMatrix(testDataset)).showIt();
+    }
 }

@@ -113,7 +113,23 @@ public abstract class KNN43<F extends Features, L> extends KNN<F, L> {
     }
 
     @Override
-    public Map getConfusionMatrix(Map testData) {
-        return null;
+    public Map<L, Map<L, Integer>> getConfusionMatrix(Map<F, L> testData) {
+        //initialize Confusion Matrix
+        Map<L, Map<L, Integer>> matrix = new HashMap<L, Map<L, Integer>>();
+        for (L label : testData.values()) {
+            matrix.put(label, new HashMap<L, Integer>());
+            for (L label2 : testData.values()) {
+                matrix.get(label).put(label2, 0);
+            }
+        }
+        // fill confusion matrix with values
+        for (F data : testData.keySet()) {
+            L correctLabel = testData.get(data);
+            L classifiedLabel = classify(data);
+            Integer currentFrequency = matrix.get(correctLabel).
+                    get(classifiedLabel);
+            matrix.get(correctLabel).put(classifiedLabel, currentFrequency + 1);
+        }
+        return matrix;
     }
 }

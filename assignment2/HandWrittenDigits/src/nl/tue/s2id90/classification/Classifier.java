@@ -11,8 +11,8 @@ import nl.tue.s2id90.classification.data.Features;
 
 /**
  * Interface for classes that implement a classifier. A classifier according to
- * this interface gives for a given feature vector v of type F as output 
- * a label of type L. 
+ * this interface gives for a given feature vector v of type F as output
+ * a label of type L.
  * @author huub
  * @param <F>  type of feature vector
  * @param <L>  label, the result of classification
@@ -31,7 +31,7 @@ public interface Classifier<F extends Features, L> {
      *         classified by this classifier.
      */
     double errorRate(Map<F, L> testData);
-    
+
     /** returns confusion matrix.
      * returns a map m such that m.get(a).get(b) is the number of
      * times target a has been recognized as b. This is conceptually equivalent
