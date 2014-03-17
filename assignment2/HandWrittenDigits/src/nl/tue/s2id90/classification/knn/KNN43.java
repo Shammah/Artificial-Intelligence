@@ -13,7 +13,7 @@ import nl.tue.s2id90.classification.data.Features;
 /**
  * Abstract implementation of our KNN algorithm.
  *
- * @author Roy Stoof (0767157)
+ * @author Group 43
  * @param <F> The feature type.
  * @param <L> The label type.
  */

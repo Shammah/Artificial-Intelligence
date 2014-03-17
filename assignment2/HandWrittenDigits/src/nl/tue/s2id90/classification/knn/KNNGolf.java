@@ -7,7 +7,7 @@ import nl.tue.s2id90.classification.data.golf.GolfFeatures;
 
 /**
  *
- * @author Group43
+ * @author Group 43
  * @since 16-mrt-2014
  */
 public class KNNGolf extends KNN43 {
