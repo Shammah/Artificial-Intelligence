@@ -14,6 +14,7 @@ import java.util.logging.Logger;
 import nl.tue.s2id90.classification.Classifier;
 import nl.tue.s2id90.classification.ConfusionMatrixPanel;
 import nl.tue.s2id90.classification.data.Features;
+import nl.tue.s2id90.classification.data.LabeledDataset2;
 import nl.tue.s2id90.classification.data.digits.HandWrittenDigits;
 import nl.tue.s2id90.classification.data.digits.LabeledImage;
 import nl.tue.s2id90.classification.data.digits.features.Doubles;
@@ -124,7 +125,9 @@ public abstract class KNN<F extends Features,L> implements Classifier<F,L>  {
         for (LabeledImage image : testImages) {
             testDataset.put(new Doubles(image), image.getLabel());
         }
+        LabeledDataset2 testData = new LabeledDataset2();
+        testData.putAll(testDataset);
         KNNDigits knn = new KNNDigits(trainingDataset, 5);
-        new ConfusionMatrixPanel(null, knn.getConfusionMatrix(testDataset)).showIt();
+        new ConfusionMatrixPanel(testData, knn.getConfusionMatrix(testDataset)).showIt();
     }
 }

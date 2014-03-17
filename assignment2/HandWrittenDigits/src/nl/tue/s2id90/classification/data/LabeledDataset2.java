@@ -18,7 +18,7 @@ import nl.tue.s2id90.classification.decisiontree.Information;
  * @param <L> classification label
  * @see LabeledDataset
  */
-public abstract class LabeledDataset2<V extends Features, L> extends LabeledDataset<V, L> {
+public class LabeledDataset2<V extends Features, L> extends LabeledDataset<V, L> {
     protected final Map<L, List<V>> reversedMap; // maps class to list of elements with that class
 
     public LabeledDataset2() {
@@ -78,7 +78,14 @@ public abstract class LabeledDataset2<V extends Features, L> extends LabeledData
      *        attribute.
      **/
     public Map<Object,LabeledDataset2<V, L>> discreteSplit(int i) {
-        throw new UnsupportedOperationException("needs to be implemented");
+        /*Map<Object, LabeledDataset2<V,L>> result = new HashMap<Object, LabeledDataset2<V,L>>();
+        List<V> features = this.featureVectors();
+        for (Features feature : features) {
+            if (result.containsKey(feature)) {
+
+            }
+        }*/
+        throw new UnsupportedOperationException();
     }
 
     /** partitions dataset in 2 subsets, one with only the vectors with values of the i-th attribute higher
