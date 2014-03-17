@@ -13,6 +13,7 @@ package nl.tue.s2id90.classification.decisiontree;
 public abstract class Information {
     /**
      * @param p probability distribution
+     * @pre \sum p = 1
      * @return the entropy of the probability distribution p. **/
     public static double entropy(double ... p) {
         double result = 0;
@@ -20,6 +21,7 @@ public abstract class Information {
             result += xlog2x(p[i]);
         }
         return -1 * result;
+
     }
 
     /**

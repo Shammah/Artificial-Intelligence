@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import nl.tue.s2id90.classification.decisiontree.Information;
 
 /**
  * Compared to a <code>LabeledDataset</code> this dataset maintains a reversed
@@ -23,15 +24,15 @@ public abstract class LabeledDataset2<V extends Features, L> extends LabeledData
     public LabeledDataset2() {
         reversedMap = new HashMap<>();
     }
-    
+
     /**
-     * @param label 
+     * @param label
      * @return the featureVectors classified as label.
      **/
     public List<V> getFeatures(L label) {
         return reversedMap.get(label);
     }
-    
+
     /**
      * adds classified data to this dataset.
      *
@@ -42,7 +43,7 @@ public abstract class LabeledDataset2<V extends Features, L> extends LabeledData
             put(cd.getValue(),cd.getKey());
         }
     }
-    
+
     /**
      * adds classified data to this dataset.
      *
@@ -71,7 +72,7 @@ public abstract class LabeledDataset2<V extends Features, L> extends LabeledData
         list.add(v);
         classification.put(v, t);
     }
-    
+
     /** splits dataset in subsets with a constant value for the i-th feature.
      * @return result of splitting, the keys in this map are the values of the i-th
      *        attribute.
@@ -79,8 +80,8 @@ public abstract class LabeledDataset2<V extends Features, L> extends LabeledData
     public Map<Object,LabeledDataset2<V, L>> discreteSplit(int i) {
         throw new UnsupportedOperationException("needs to be implemented");
     }
-    
-    /** partitions dataset in 2 subsets, one with only the vectors with values of the i-th attribute higher 
+
+    /** partitions dataset in 2 subsets, one with only the vectors with values of the i-th attribute higher
      *  than the given splitValue.
      * @return result of splitting, the keys in this map are "<= splitValue" or ">splitValue".
      **/
@@ -92,7 +93,12 @@ public abstract class LabeledDataset2<V extends Features, L> extends LabeledData
      *  @return probability of the labels.
      **/
     public double[] classProbabilities() {
-        throw new UnsupportedOperationException("needs to be implemented");
+        List<Integer> frequencies = this.getFrequencies();
+        double[] probs = new double[this.getNumberOfLabels()];
+        for (int i = 0; i < this.getNumberOfLabels(); i++) {
+            probs[i] = frequencies.get(i);
+        }
+        return probs;
     }
 
     /**
@@ -100,9 +106,13 @@ public abstract class LabeledDataset2<V extends Features, L> extends LabeledData
      * @return gain by discrete splitting on attribute i.
      */
     public double gain(int index) {
-        throw new UnsupportedOperationException("needs to be implemented");
+        double entDataSet = Information.entropy(this.classProbabilities());
+        double avgEntropy;
+        V v = classification.keySet().iterator().next();
+        //I would like to get the possible values for v.
+        return 0.0; //TODO
     }
-    
+
      /**
      * @param index index of attribute used for continuous splitting
      * @param splitValue
@@ -111,14 +121,22 @@ public abstract class LabeledDataset2<V extends Features, L> extends LabeledData
     public double gain(int index, Number splitValue) {
         throw new UnsupportedOperationException("needs to be implemented");
     }
-    
+
      /** @return the most frequently occurring class in this dataset;
       * null, if the dataset is empty.
      */
     public L getMostFrequentClass() {
-        throw new UnsupportedOperationException("needs to be implemented");
+        L mostFrequent = null;
+        int highestFrequency = 0;
+        for (L label : getLabels()) {
+            if (getFeatures(label).size() > highestFrequency) {
+                mostFrequent = label;
+                highestFrequency = getFeatures(label).size();
+            }
+        }
+        return mostFrequent;
     }
-    
+
     /** @return the frequencies of the subclasses . **/
     public List<Integer> getFrequencies() {
         List<Integer> result = new ArrayList<>();
