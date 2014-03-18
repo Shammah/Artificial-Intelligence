@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import nl.tue.s2id90.classification.data.Features;
+import nl.tue.win.util.Pair;
 
 /**
  * Abstract implementation of our KNN algorithm.
@@ -26,28 +27,18 @@ public abstract class KNN43<F extends Features, L> extends KNN<F, L> {
     /**
      * Finds the closest of two features in reference to a local feature v.
      */
-    public class DistanceComparator implements Comparator<F> {
-
-        private final F _v;
-
-        public DistanceComparator(F v) {
-            _v = v;
-        }
+    public class DistanceComparator implements Comparator<Pair<F, Double>> {
 
         @Override
-        public int compare(F t, F t1) {
-            double d1 = distance(t, _v);
-            double d2 = distance(t1, _v);
-
-            if (d1 < d2) {
+        public int compare(Pair<F, Double> t, Pair<F, Double> t1) {
+            if (t.second < t1.second) {
                 return -1;
-            } else if (d1 > d2) {
+            } else if (t.second > t1.second) {
                 return 1;
             } else {
                 return 0;
             }
         }
-
     }
 
     /**
@@ -79,17 +70,19 @@ public abstract class KNN43<F extends Features, L> extends KNN<F, L> {
 
     @Override
     public L classify(F v) {
-        // Get a list of all neigbours.
-        List<F> neighbours = new ArrayList<>();
-        neighbours.addAll(trainingData.keySet());
+        // Initialize all neighbours with the distance.
+        List<Pair<F, Double>> neighbours = new ArrayList<>();
+        for (F data : trainingData.keySet()) {
+            neighbours.add(new Pair<>(data, distance(v, data)));
+        }
 
         // Sort neighbours by distance.
-        Collections.sort(neighbours, new DistanceComparator(v));
+        Collections.sort(neighbours, new DistanceComparator());
 
         // Find the most common label and return that.
         List<L> labels = new ArrayList<>();
-        for (F neighbour : neighbours.subList(0, k)) {
-            labels.add(trainingData.get(neighbour));
+        for (Pair<F, Double> neighbour : neighbours.subList(0, k)) {
+            labels.add(trainingData.get(neighbour.first));
         }
 
         return mostCommon(labels);

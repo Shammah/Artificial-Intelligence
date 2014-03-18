@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import nl.tue.s2id90.classification.data.LabeledDataset2;
-import nl.tue.s2id90.classification.data.digits.DigitsUtil;
 import nl.tue.s2id90.classification.data.digits.HandWrittenDigits;
 import nl.tue.s2id90.classification.data.digits.LabeledImage;
 import nl.tue.s2id90.classification.data.digits.features.Doubles;
@@ -24,7 +23,7 @@ public class Main {
         try {
             // Load test and training data.
             List<LabeledImage> trainingImages, testImages;
-            trainingImages = HandWrittenDigits.getTrainingData(150, true);
+            trainingImages = HandWrittenDigits.getTrainingData(15000, true);
             testImages     = HandWrittenDigits.getTestData();
             
             // Show test data.
@@ -47,7 +46,7 @@ public class Main {
             testData.putAll(testDataset);
             
             // Runs the neirest neighbour algorithm and show the confusion matrix.
-            KNN43 knn = new KNNDigits(trainingDataset, 2);
+            KNN43 knn = new KNNDigits(trainingDataset, 4);
             new ConfusionMatrixPanel(testData, knn.getConfusionMatrix(testDataset)).showIt();
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
