@@ -34,7 +34,7 @@ public abstract class DecisionTree<F extends Features,L>
      * @param dataset
      * @param clazz
      **/
-    public DecisionTree(LabeledDataset2 dataset, L clazz) {
+    public DecisionTree(LabeledDataset2<F, L> dataset, L clazz) {
         assert clazz!=null;
         this.dataset = dataset;
         this.label = clazz;
