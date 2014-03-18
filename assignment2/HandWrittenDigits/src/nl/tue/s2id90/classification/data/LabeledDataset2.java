@@ -153,10 +153,9 @@ public class LabeledDataset2<V extends Features, L> extends LabeledDataset<V, L>
      */
     public double gain(int index) {
         double entDataSet = Information.entropy(this.classProbabilities());
-        double avgEntropy;
-        V v = classification.keySet().iterator().next();
-        //I would like to get the possible values for v.
-        return 0.0; //TODO
+        Map<Object, LabeledDataset2<V, L>> split = discreteSplit(index);
+        
+        return (entDataSet - averageEntropy(split)) / size();
     }
 
      /**
@@ -165,7 +164,26 @@ public class LabeledDataset2<V extends Features, L> extends LabeledDataset<V, L>
      * @return gain by discreteSplitting on attribute i.
      */
     public double gain(int index, Number splitValue) {
-        throw new UnsupportedOperationException("needs to be implemented");
+        double entDataSet = Information.entropy(this.classProbabilities());
+        Map<Object, LabeledDataset2<V, L>> split = continuousSplit(index, splitValue);
+        
+        return (entDataSet - averageEntropy(split)) / size();
+    }
+    
+    /**
+     * Calculates the average entropy for a splitted tree.
+     * @param split splitted tree.
+     * @return average entropy of splitted tree.
+     */
+    public double averageEntropy(Map<Object, LabeledDataset2<V, L>> split) {
+        double avgEntropy = 0;
+        
+        for (Object attributeValue : split.keySet()) {
+            avgEntropy += split.get(attributeValue).size()
+                       * Information.entropy(split.get(attributeValue).classProbabilities());
+        }
+        
+        return avgEntropy;
     }
 
      /** @return the most frequently occurring class in this dataset;
