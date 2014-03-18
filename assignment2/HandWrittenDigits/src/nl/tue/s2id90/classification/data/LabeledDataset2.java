@@ -78,14 +78,18 @@ public class LabeledDataset2<V extends Features, L> extends LabeledDataset<V, L>
      *        attribute.
      **/
     public Map<Object,LabeledDataset2<V, L>> discreteSplit(int i) {
-        /*Map<Object, LabeledDataset2<V,L>> result = new HashMap<Object, LabeledDataset2<V,L>>();
+        Map<Object, LabeledDataset2<V,L>> result = new HashMap<Object, LabeledDataset2<V,L>>();
         List<V> features = this.featureVectors();
-        for (Features feature : features) {
-            if (result.containsKey(feature)) {
-
+        for (V feature : features) {
+            if (result.containsKey(feature.get(i))) {
+                LabeledDataset2<V,L> newSet = new LabeledDataset2<>();
+                newSet.put(this.getLabel(feature), feature);
+                result.put(feature.get(i), newSet);
+            } else {
+                result.get(feature.get(i)).put(this.getLabel(feature), feature);
             }
-        }*/
-        throw new UnsupportedOperationException();
+        }
+        return result;
     }
 
     /** partitions dataset in 2 subsets, one with only the vectors with values of the i-th attribute higher
