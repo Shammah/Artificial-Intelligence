@@ -82,7 +82,7 @@ public class LabeledDataset2<V extends Features, L> extends LabeledDataset<V, L>
         // We map an attribute value to a labeled dataset.
         // So, if the i-th attribute can have values HIGH, MED and LOW, these
         // three attribute values will be the keys.
-        Map<Object, LabeledDataset2<V,L>> result = new HashMap<>();
+        Map<Object, LabeledDataset2<V, L>> result = new HashMap<>();
         List<V> features = featureVectors();
         
         // We will categorize each feature.
@@ -92,7 +92,7 @@ public class LabeledDataset2<V extends Features, L> extends LabeledDataset<V, L>
             if (!result.containsKey(attributeValue)) {
                 // The key for the attribute value does not yet exist,
                 // thus we will create it.
-                LabeledDataset2<V,L> newSet = new LabeledDataset2<>();
+                LabeledDataset2<V, L> newSet = new LabeledDataset2<>();
                 newSet.put(getLabel(feature), feature);
                 result.put(attributeValue, newSet);
             } else {
@@ -107,8 +107,29 @@ public class LabeledDataset2<V extends Features, L> extends LabeledDataset<V, L>
      *  than the given splitValue.
      * @return result of splitting, the keys in this map are "<= splitValue" or ">splitValue".
      **/
-    private Map<Object,LabeledDataset2<V, L>> continuousSplit(int index, Number splitValue) {
-        throw new UnsupportedOperationException("needs to be implemented");
+    private Map<Object,LabeledDataset2<V, L>> continuousSplit(int i, Number splitValue) {
+        // We will split two ways, so we can create the final map easily.
+        Map<Object, LabeledDataset2<V, L>> result = new HashMap<>();
+        LabeledDataset2<V, L> smallerEqual = new LabeledDataset2<>();
+        LabeledDataset2<V, L> bigger = new LabeledDataset2<>();
+        List<V> features = featureVectors();
+        
+        // We will categorize each feature.
+        for (V feature : features) {
+            // Put the feature in the correct splitted subtree.
+            // We will assume the numbers are integers.
+            int attributeValue = ((Number) feature.get(i)).intValue();
+            
+            if (attributeValue <= splitValue.intValue()) {
+                smallerEqual.put(getLabel(feature), feature);
+            } else {
+                bigger.put(getLabel(feature), feature);
+            }
+        }
+        
+        result.put("<= " + splitValue.intValue(), smallerEqual);
+        result.put("> " + splitValue.intValue(), bigger);
+        return result;
     }
 
     /** returns the probabilities of the classification labels for this dataset.
