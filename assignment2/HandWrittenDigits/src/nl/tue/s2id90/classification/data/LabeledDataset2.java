@@ -136,12 +136,14 @@ public class LabeledDataset2<V extends Features, L> extends LabeledDataset<V, L>
      *  @return probability of the labels.
      **/
     public double[] classProbabilities() {
-        List<Integer> frequencies = this.getFrequencies();
-        double[] probs = new double[this.getNumberOfLabels()];
-        for (int i = 0; i < this.getNumberOfLabels(); i++) {
+        List<Integer> frequencies = getFrequencies();
+        double[] probs = new double[frequencies.size()];
+        
+        for (int i = 0; i < probs.length; i++) {
             probs[i] = frequencies.get(i);
             probs[i] /= this.size();
         }
+        
         return probs;
     }
 
