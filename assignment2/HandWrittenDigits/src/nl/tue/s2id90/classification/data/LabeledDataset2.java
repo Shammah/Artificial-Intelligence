@@ -107,7 +107,7 @@ public class LabeledDataset2<V extends Features, L> extends LabeledDataset<V, L>
      *  than the given splitValue.
      * @return result of splitting, the keys in this map are "<= splitValue" or ">splitValue".
      **/
-    private Map<Object,LabeledDataset2<V, L>> continuousSplit(int i, Number splitValue) {
+    public Map<Object,LabeledDataset2<V, L>> continuousSplit(int i, Number splitValue) {
         // We will split two ways, so we can create the final map easily.
         Map<Object, LabeledDataset2<V, L>> result = new HashMap<>();
         LabeledDataset2<V, L> smallerEqual = new LabeledDataset2<>();
@@ -155,7 +155,7 @@ public class LabeledDataset2<V extends Features, L> extends LabeledDataset<V, L>
         double entDataSet = Information.entropy(this.classProbabilities());
         Map<Object, LabeledDataset2<V, L>> split = discreteSplit(index);
         
-        return (entDataSet - averageEntropy(split)) / size();
+        return entDataSet - averageEntropy(split) / size();
     }
 
      /**
@@ -167,7 +167,7 @@ public class LabeledDataset2<V extends Features, L> extends LabeledDataset<V, L>
         double entDataSet = Information.entropy(this.classProbabilities());
         Map<Object, LabeledDataset2<V, L>> split = continuousSplit(index, splitValue);
         
-        return (entDataSet - averageEntropy(split)) / size();
+        return entDataSet - averageEntropy(split) / size();
     }
     
     /**
