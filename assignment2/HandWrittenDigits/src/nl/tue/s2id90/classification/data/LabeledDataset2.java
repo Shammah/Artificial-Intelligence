@@ -104,6 +104,7 @@ public class LabeledDataset2<V extends Features, L> extends LabeledDataset<V, L>
         double[] probs = new double[this.getNumberOfLabels()];
         for (int i = 0; i < this.getNumberOfLabels(); i++) {
             probs[i] = frequencies.get(i);
+            probs[i] /= this.size();
         }
         return probs;
     }
