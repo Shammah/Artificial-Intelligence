@@ -74,21 +74,32 @@ public class LabeledDataset2<V extends Features, L> extends LabeledDataset<V, L>
     }
 
     /** splits dataset in subsets with a constant value for the i-th feature.
+     * @param i The i-th attribute we want to split for.
      * @return result of splitting, the keys in this map are the values of the i-th
      *        attribute.
      **/
     public Map<Object,LabeledDataset2<V, L>> discreteSplit(int i) {
-        Map<Object, LabeledDataset2<V,L>> result = new HashMap<Object, LabeledDataset2<V,L>>();
-        List<V> features = this.featureVectors();
+        // We map an attribute value to a labeled dataset.
+        // So, if the i-th attribute can have values HIGH, MED and LOW, these
+        // three attribute values will be the keys.
+        Map<Object, LabeledDataset2<V,L>> result = new HashMap<>();
+        List<V> features = featureVectors();
+        
+        // We will categorize each feature.
         for (V feature : features) {
-            if (result.containsKey(feature.get(i))) {
+            // Check if the attribute value already exists as a key.
+            Object attributeValue = feature.get(i);
+            if (!result.containsKey(attributeValue)) {
+                // The key for the attribute value does not yet exist,
+                // thus we will create it.
                 LabeledDataset2<V,L> newSet = new LabeledDataset2<>();
-                newSet.put(this.getLabel(feature), feature);
-                result.put(feature.get(i), newSet);
+                newSet.put(getLabel(feature), feature);
+                result.put(attributeValue, newSet);
             } else {
-                result.get(feature.get(i)).put(this.getLabel(feature), feature);
+                result.get(attributeValue).put(getLabel(feature), feature);
             }
         }
+        
         return result;
     }
 
