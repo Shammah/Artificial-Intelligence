@@ -26,7 +26,7 @@ import nl.tue.s2id90.classification.labeledtree.DotUtil;
 public class Main {
 
     public static void main(String[] a) {
-        treeImages();
+        ski();
     }
 
     public static void golf() {

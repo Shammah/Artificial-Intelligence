@@ -49,9 +49,9 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
         Map<Object, LabeledDataset2<F,L>> split;
         if (dataset.isContinuousFeature(splitIndex)) {
             //Continuous feature, We split at the median
-            List<Double> numbers = new ArrayList<>();
+            List<Integer> numbers = new ArrayList<>();
             for (F feature : dataset.featureVectors()) {
-                numbers.add((Double) feature.get(splitIndex));
+                numbers.add((Integer) feature.get(splitIndex));
             }
             Collections.sort(numbers);
             int median = (int) numbers.size() / 2;
@@ -66,7 +66,8 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
         for (Object value : split.keySet()) {
             LabeledDataset2<F,L> subDataset = split.get(value);
             if (!dataset.isEmpty()) {
-                               System.out.println(value);
+                System.out.println(value);
+                System.out.println("Attribute: " + this.getSplitAttribute());
                 DecisionTree43<F,L> subTree = new DecisionTree43<F,L>(subDataset);
                 this.addSubTree(value, subTree);
             } else {
@@ -146,5 +147,11 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
             matrix.get(correctLabel).put(classifiedLabel, currentFrequency + 1);
         }
         return matrix;
+    }
+
+    @Override
+    public int prune(final LabeledDataset2<F, L> testData) {
+        // use visitor!?
+        throw new UnsupportedOperationException("Needs to be implemented");
     }
 }
