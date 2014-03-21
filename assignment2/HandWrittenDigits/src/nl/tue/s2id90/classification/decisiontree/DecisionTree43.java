@@ -1,6 +1,5 @@
 package nl.tue.s2id90.classification.decisiontree;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,94 +24,94 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
         super(dataset, clazz);
     }
 
+    /**
+     * Returns the median value of the i-th continuous attribute.
+     *
+     * @param splitIndex The attribute to find the median for.
+     * @param dataset The dataset which contains the i-th attribute.
+     * @return The median value of the i-th attribute.
+     */
+    public double median(int splitIndex, LabeledDataset2<F, L> dataset) {
+        List<Double> attributeValues = new ArrayList<>();
+
+        for (F feature : dataset.featureVectors()) {
+            Number attributeValue = (Number) feature.get(splitIndex);
+            attributeValues.add(attributeValue.doubleValue());
+        }
+
+        Collections.sort(attributeValues);
+        int medianIndex = (int) attributeValues.size() / 2;
+        return attributeValues.get(medianIndex);
+    }
+    
+    public double average(int splitIndex, LabeledDataset2<F, L> dataset) {
+        double sum = 0;
+
+        for (F feature : dataset.featureVectors()) {
+            Number attributeValue = (Number) feature.get(splitIndex);
+            sum += attributeValue.doubleValue();
+        }
+
+        return sum / dataset.size();
+    }
+
+    /**
+     * Build the tree with a given dataset.
+     * @param dataset  The dataset to build the tree for.
+     */
     @Override
     protected void build(LabeledDataset2<F, L> dataset) {
-        System.out.println((dataset == null) + " " + dataset.isEmpty());
-        int splitIndex = -1; //index of attribute on which to split
-        double maxGain = -1; //maximum gain
-        //Find the attribute that gives the highest gain
-        for (int i = 0; i < dataset.getNumberOfDimensions(); i ++) {
-            double gain = dataset.gain(i);
+        int splitIndex = -1; // Index of attribute on which to split
+        double maxGain = -1; // Maximum gain
+        double avg     =  0; // In case we end up with a continious split.
+
+        // Find the attribute that gives the highest gain.
+        for (int i = 0; i < dataset.getNumberOfDimensions(); i++) {
+            double gain;
+            if (dataset.isContinuousFeature(i)) {
+                avg = average(i, dataset);
+                gain = dataset.gain(i, avg);
+            } else {
+                gain = dataset.gain(i);
+            }
+
             if (gain > maxGain) {
                 maxGain = gain;
                 splitIndex = i;
             }
         }
 
-        /** Base case */
-        System.out.println("maxGain: " + maxGain);
-        if (maxGain <= 0.000001) {
+        // If maxgain is (near) zero, then we have a leaf.
+        if (maxGain <= 0.00001) {
             this.setLabel(dataset.getMostFrequentClass());
             return;
         }
-        /** Step case */
-        Map<Object, LabeledDataset2<F,L>> split;
+
+        // We are not delaing with a leaf, thus have to split.
+        Map<Object, LabeledDataset2<F, L>> split;
         if (dataset.isContinuousFeature(splitIndex)) {
-            //Continuous feature, We split at the median
-            List<Integer> numbers = new ArrayList<>();
-            for (F feature : dataset.featureVectors()) {
-                numbers.add((Integer) feature.get(splitIndex));
-            }
-            Collections.sort(numbers);
-            int median = (int) numbers.size() / 2;
-            this.setSplit(splitIndex, numbers.get(median));
-            split = dataset.continuousSplit(splitIndex, numbers.get(median));
+            setSplit(splitIndex, avg); // Set label in internal node.
+            split = dataset.continuousSplit(splitIndex, avg);
         } else {
             //Concrete feature
-            this.setSplit(splitIndex, null);
+            setSplit(splitIndex, null); // Set label in internal node.
             split = dataset.discreteSplit(splitIndex);
         }
 
+        // We have now split the dataset for an attribute. Each split will now
+        // be added as a sub-tree to this current tree.
         for (Object value : split.keySet()) {
-            LabeledDataset2<F,L> subDataset = split.get(value);
-            if (!dataset.isEmpty()) {
-                System.out.println(value);
-                System.out.println("Attribute: " + this.getSplitAttribute());
-                DecisionTree43<F,L> subTree = new DecisionTree43<F,L>(subDataset);
-                this.addSubTree(value, subTree);
-            } else {
-                DecisionTree<F,L> subTree = new DecisionTree43<F,L>(subDataset,dataset.getMostFrequentClass());
-                this.addSubTree(value, subTree);
-                return;
-            }
-        }
-/*
-        // We are at a leaf.
-        if (maxGain <= 0.0001) {
-            setLabel(dataset.getMostFrequentClass());
-            return;
-        }
+            LabeledDataset2<F, L> subDataset = split.get(value);
 
-        // Split the tree by the attribute giving the highest gain.
-        Map<Object, LabeledDataset2<F, L>> split;
-        if (dataset.isContinuousFeature(maxAttr)) {
-            // Splitvalue = median.
-            List<Integer> numbers = new ArrayList<>();
-            for (F f : dataset.featureVectors()) {
-                numbers.add((int) f.get(maxAttr));
-            }
-
-            Collections.sort(numbers);
-            System.out.println((int) (numbers.size() / 2) + " "  + numbers.get((int) (numbers.size() / 2)));
-            split = dataset.continuousSplit(maxAttr, numbers.get((int) (numbers.size() / 2)));
-        } else {
-            split = dataset.discreteSplit(maxAttr);
-            this.setLabel((L) dataset.getFeatureName(maxAttr));
-        }
-
-        // Create subtrees from splitting.
-        for (Object attribute : split.keySet()) {
-            DecisionTree43<F, L> subTree;
-            LabeledDataset2<F, L> subDataset = split.get(attribute);
-
+            // If we are dealing with an empty set, we are dealing with a leaf.
             if (split.keySet().size() == 1) {
-                subTree = new DecisionTree43<>(subDataset, subDataset.getLabels().iterator().next());
-            } else {
-                subTree = new DecisionTree43<>(subDataset);
+                DecisionTree<F, L> subTree = new DecisionTree43<>(subDataset, dataset.getMostFrequentClass());
+                addSubTree(value, subTree);
+            } else if (!subDataset.isEmpty()){
+                DecisionTree43<F, L> subTree = new DecisionTree43<>(subDataset);
+                addSubTree(value, subTree);
             }
-
-            addSubTree(attribute, subTree);
-        }*/
+        }
     }
 
     @Override
