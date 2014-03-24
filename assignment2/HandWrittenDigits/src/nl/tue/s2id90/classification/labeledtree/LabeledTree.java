@@ -21,22 +21,25 @@ import java.util.Set;
  * @param <T> type of child trees
  * @see DemoTree
  */
-public class LabeledTree<Label,T extends LabeledTree<Label,T>> { 
+public class LabeledTree<Label,T extends LabeledTree<Label,T>> {
     private final Map<Label,T> children = new HashMap<>();
-  
+
     /**
      * @param label
      * @return the sub tree with this label; null, if such a  tree does not exist.
      */
     public T getSubTree(Label label) {
+        for (Label l : children.keySet()) {
+            System.out.println(l);
+        }
         return children.get(label);
     }
-    
+
     /** @return whether or not the root of this tree has children. **/
     public boolean isLeaf() {
         return children.isEmpty();
     }
-    
+
     /** @return the labels of the edges in the root of this tree;
      *           null, if this root has no children.
      **/
@@ -47,7 +50,7 @@ public class LabeledTree<Label,T extends LabeledTree<Label,T>> {
             return children.keySet();
         }
     }
-    
+
     /** @return the sub trees of the root of this tree;
      *           null, if this root has no children.
      **/
@@ -58,7 +61,7 @@ public class LabeledTree<Label,T extends LabeledTree<Label,T>> {
             return children.values();
         }
     }
-    
+
     /** adds a labeled subtree to the root of this tree; if the label already
      * exists the original tree is replaced.
      * @param label
@@ -67,12 +70,12 @@ public class LabeledTree<Label,T extends LabeledTree<Label,T>> {
     public void addSubTree(Label label, T tree) {
         children.put(label, tree);
     }
-    
+
     /** uses the visitor v to walk the tree in a depth-first pre-order fashion: that is recursively
-     * first the root of the tree is visited, and then one-by-one all it's sub trees. The order of 
+     * first the root of the tree is visited, and then one-by-one all it's sub trees. The order of
      * visiting is shown in the following image:
      * <br><img src="doc-files/demotree.png">.
-     * 
+     *
      * @param v  visitor
      * @see Visitor
      */
@@ -86,12 +89,12 @@ public class LabeledTree<Label,T extends LabeledTree<Label,T>> {
             }
         }
     }
-    
+
     /** uses the visitor v to walk the tree in a depth-first post-order fashion, that is recursively
-     * one-by-one all the sub trees are visited, and then the root of the tree is visited. The order of 
+     * one-by-one all the sub trees are visited, and then the root of the tree is visited. The order of
      * visiting is shown in the following image:
      * <br><img  src="doc-files/demotree-postorder.png">
-     * 
+     *
      * @param v  visitor
      * @see Visitor
      */
@@ -103,10 +106,10 @@ public class LabeledTree<Label,T extends LabeledTree<Label,T>> {
                 child.depthFirstPostOrderVisit(v);
             }
         }
-        
+
         // post order node
         v.visitNode(this);
-        
+
         // post order edges
         if (!isLeaf()) {
             for(Label attributeValue: children.keySet()) {
@@ -115,15 +118,15 @@ public class LabeledTree<Label,T extends LabeledTree<Label,T>> {
             }
         }
     }
-    
-    /** returns a dot representation of this tree. 
+
+    /** returns a dot representation of this tree.
      * @return dot representation
      * @see <a href="http://sandbox.kidstrythisathome.com/erdos">View dot files online</a>
      * @see <a href="http://www.graphviz.org">Graphviz</a>
      */
     public String toDot() {
         final StringBuilder b = new StringBuilder("digraph DT {\n");
-        Visitor<Label,T> visitor = new DotVisitor<>(b);                
+        Visitor<Label,T> visitor = new DotVisitor<>(b);
         depthFirstPreOrderVisit(visitor);
         return b.append("}").toString();
     }

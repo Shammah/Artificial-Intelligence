@@ -80,6 +80,7 @@ public class Main {
             // Runs the neirest neighbour algorithm and show the confusion matrix.
             DecisionTree43<ImageFeatures<Double>,Byte> tree;
             tree = new DecisionTree43<>(trainingData);
+                    DotUtil.showDotInBrowser(tree.toDot());
             new ConfusionMatrixPanel(testData, tree.getConfusionMatrix(testDataset)).showIt();
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);

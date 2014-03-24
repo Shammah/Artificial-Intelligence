@@ -16,7 +16,7 @@ public abstract class DecisionTree<F extends Features,L>
     extends LabeledTree<Object,DecisionTree<F,L>> implements Classifier<F,L> {
     protected L label;
     protected int splitAttribute;
-    protected Number splitValue; // for continuous discreteSplit only
+    protected Number splitValue; // for continuous Split only
 
     /** All the feature vectors in this tree. **/
     final protected LabeledDataset2<F,L> dataset;

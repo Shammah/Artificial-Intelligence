@@ -3,8 +3,10 @@ package nl.tue.s2id90.classification.decisiontree;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import nl.tue.s2id90.classification.data.Features;
 import nl.tue.s2id90.classification.data.LabeledDataset2;
 
@@ -43,7 +45,7 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
         int medianIndex = (int) attributeValues.size() / 2;
         return attributeValues.get(medianIndex);
     }
-    
+
     public double average(int splitIndex, LabeledDataset2<F, L> dataset) {
         double sum = 0;
 
@@ -55,6 +57,20 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
         return sum / dataset.size();
     }
 
+    public double maxArgument(int splitIndex, LabeledDataset2<F,L> dataset) {
+        double maxGain = -1; //maximum gain to be gained
+        double bestValue = Double.NaN; // best value to split on
+        for (F feature : dataset.featureVectors()) {
+            Number attributeValue = (Number) feature.get(splitIndex);
+            double gain = dataset.gain(splitIndex, attributeValue);
+            if (gain > maxGain) {
+                maxGain = gain;
+                bestValue = attributeValue.doubleValue();
+            }
+        }
+        return bestValue;
+    }
+
     /**
      * Build the tree with a given dataset.
      * @param dataset  The dataset to build the tree for.
@@ -63,14 +79,15 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
     protected void build(LabeledDataset2<F, L> dataset) {
         int splitIndex = -1; // Index of attribute on which to split
         double maxGain = -1; // Maximum gain
-        double avg     =  0; // In case we end up with a continious split.
+        double maxArgument = 0; // In case we end up with a continuous split.
 
         // Find the attribute that gives the highest gain.
         for (int i = 0; i < dataset.getNumberOfDimensions(); i++) {
             double gain;
+            double maxarg = Double.NaN;
             if (dataset.isContinuousFeature(i)) {
-                avg = average(i, dataset);
-                gain = dataset.gain(i, avg);
+                maxarg = maxArgument(i, dataset);
+                gain = dataset.gain(i, maxarg);
             } else {
                 gain = dataset.gain(i);
             }
@@ -78,6 +95,9 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
             if (gain > maxGain) {
                 maxGain = gain;
                 splitIndex = i;
+                if (dataset.isContinuousFeature(i)) {
+                    maxArgument = maxarg;
+                }
             }
         }
 
@@ -87,11 +107,11 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
             return;
         }
 
-        // We are not delaing with a leaf, thus have to split.
+        // We are not dealing with a leaf, thus have to split.
         Map<Object, LabeledDataset2<F, L>> split;
         if (dataset.isContinuousFeature(splitIndex)) {
-            setSplit(splitIndex, avg); // Set label in internal node.
-            split = dataset.continuousSplit(splitIndex, avg);
+            setSplit(splitIndex, maxArgument); // Set label in internal node.
+            split = dataset.continuousSplit(splitIndex, maxArgument);
         } else {
             //Concrete feature
             setSplit(splitIndex, null); // Set label in internal node.
@@ -122,7 +142,15 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
         } else {
             int index = root.getSplitAttribute();
             Object attributeValue = v.get(index);
-            root = root.getSubTree(attributeValue);
+            if (v.isContinuous(index) && (Double) attributeValue <= root.splitValue.doubleValue()) {
+                root = root.getSubTree("<= " + root.splitValue);
+                //System.out.println("<= " + (Double) attributeValue);
+            } else if (v.isContinuous(index)) {
+                root = root.getSubTree("> " + root.splitValue);
+            } else {
+                //discrete attribute
+                root = root.getSubTree(root.splitValue);
+            }
             return root.classify(v);
         }
     }
