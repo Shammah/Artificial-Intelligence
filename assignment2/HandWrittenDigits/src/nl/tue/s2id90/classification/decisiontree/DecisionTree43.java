@@ -82,7 +82,7 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
             double gain; //gain of a certain split
             double bestValue = Double.NaN; //value that maximizes gain in case of a continuous split
             if (dataset.isContinuousFeature(i)) {
-                bestValue = findSplitValue(i, dataset);
+                bestValue = average(i, dataset);
                 gain = dataset.gain(i, bestValue);
             } else { //discrete
                 gain = dataset.gain(i);
@@ -101,8 +101,9 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
 
     /**
      * Returns the value for the attribute at index {@code splitIndex} that
-     * maximizes the information gain.
+     * maximizes the information gain, that is, the optimal one.
      * We compute the information gain for each value, and return the best value.
+     * We use a set in order to improve performance.
      *
      * @param splitIndex index of the desired attribute to split on
      * @param dataset dataset containing the features
@@ -112,8 +113,11 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
     public double findSplitValue(int splitIndex, LabeledDataset2<F,L> dataset) {
         double maxGain = -1; //maximum gain to be gained
         double bestValue = Double.NaN; // best value to split on
+        Set<Number> values = new HashSet<>();
         for (F feature : dataset.featureVectors()) {
-            Number attributeValue = (Number) feature.get(splitIndex);
+            values.add((Number) feature.get(splitIndex));
+        }
+        for (Number attributeValue : values) {
             double gain = dataset.gain(splitIndex, attributeValue);
             if (gain > maxGain) {
                 maxGain = gain;
@@ -130,7 +134,6 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
      * @param dataset The dataset which contains the i-th attribute.
      * @return The median value of the i-th attribute.
      */
-    @Deprecated
     public double median(int splitIndex, LabeledDataset2<F, L> dataset) {
         List<Double> attributeValues = new ArrayList<>();
 
@@ -151,7 +154,6 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
      * @param dataset dataset containing the features
      * @return the average of the attribute with index {@code splitIndex}
      */
-    @Deprecated
     public double average(int splitIndex, LabeledDataset2<F, L> dataset) {
         double sum = 0;
 
@@ -193,10 +195,16 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
         }
     }
 
+    /**
+     * Returns the confusion matrix for this decision tree on {@code testData}.
+     * Since this method is exactly the same for kNN, consider placing it more general.
+     * @param testData test data for testing
+     * @return the confusion matrix for this decision tree on {@code testData}.
+     */
     @Override
     public Map<L, Map<L, Integer>> getConfusionMatrix(Map<F, L> testData) {
         //initialize Confusion Matrix
-        Map<L, Map<L, Integer>> matrix = new HashMap<L, Map<L, Integer>>();
+        Map<L, Map<L, Integer>> matrix = new HashMap<>();
         for (L label : testData.values()) {
             matrix.put(label, new HashMap<L, Integer>());
             for (L label2 : testData.values()) {
@@ -211,7 +219,31 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
                     get(classifiedLabel);
             matrix.get(correctLabel).put(classifiedLabel, currentFrequency + 1);
         }
+        System.out.println(errorRate(testData));
         return matrix;
+    }
+
+    /**
+     * Returns the error rate for this decision tree on {@code testData}.
+     * This method is exactly the same for kNN, so consider placing it more general.
+     * @param testData the test data to test on
+     * @return the error rate for this decision tree on {@code testData}
+     */
+    @Override
+    public double errorRate(Map<F, L> testData) {
+        // The total number of wrong classifications.
+        int wrong = 0;
+
+        // Check for each test data.
+        for (F data : testData.keySet()) {
+            // Was the classifier wrong?
+            if (classify(data) != testData.get(data)) {
+                wrong++;
+            }
+        }
+
+        // Return the ratio between 0 and 1 that was classified correctly.
+        return ((double) wrong) / ((double) testData.size());
     }
 
     @Override

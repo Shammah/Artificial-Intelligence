@@ -16,21 +16,31 @@ import nl.tue.s2id90.classification.data.digits.features.ImageFeatures;
 import nl.tue.s2id90.classification.data.golf.GolfData;
 import nl.tue.s2id90.classification.data.ski.SkiData;
 import nl.tue.s2id90.classification.decisiontree.DecisionTree43;
+import nl.tue.s2id90.classification.decisiontree.RandomForest;
 import nl.tue.s2id90.classification.knn.KNN43;
 import nl.tue.s2id90.classification.knn.KNNDigits;
 import nl.tue.s2id90.classification.labeledtree.DotUtil;
 
 /**
  *
- * @author Roy Stoof (0767157)
+ * @author Group 43
  */
 public class Main {
 
+    /** Maps for handwritten digits. */
     private static Map<ImageFeatures<Double>, Byte> trainingDataset, testDataset;
+
+    /** Training and test data formatted as LabeledDataSet2 for handwritten digits */
     private static LabeledDataset2 testData, trainingData;
 
+    /** Size of the training data for handwritten digits */
+    private final static int TRAININGSIZE = 15000;
+
+    /** Number of trees used in the random forest */
+    private final static int NRTREES = 5;
+
     public static void main(String[] a) {
-        treeDigits();
+        randomForestDigits();
     }
 
     public static void golf() {
@@ -54,11 +64,23 @@ public class Main {
     }
 
     public static void treeDigits() {
+        System.out.println("reading data");
         readDigitData();
         // Runs the decision tree algorithm and show the confusion matrix.
         DecisionTree43<ImageFeatures<Double>, Byte> tree;
+        System.out.println("building tree");
         tree = new DecisionTree43<>(trainingData);
+        System.out.println("classifying");
         new ConfusionMatrixPanel(testData, tree.getConfusionMatrix(testDataset)).showIt();
+    }
+
+    public static void randomForestDigits() {
+        readDigitData();
+        RandomForest<ImageFeatures<Double>, Byte> forest;
+        System.out.println("building tree");
+        forest = new RandomForest<>(trainingData, NRTREES);
+        System.out.println("classifying");
+        new ConfusionMatrixPanel(testData, forest.getConfusionMatrix(testDataset)).showIt();
     }
 
     public static void knnDigits() throws IOException {
@@ -72,7 +94,7 @@ public class Main {
          try {
             // Load test and training data.
             List<LabeledImage> trainingImages, testImages;
-            trainingImages = HandWrittenDigits.getTrainingData(600, true);
+            trainingImages = HandWrittenDigits.getTrainingData(TRAININGSIZE, true);
             testImages = HandWrittenDigits.getTestData();
 
             // Show test data.
