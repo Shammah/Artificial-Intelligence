@@ -27,80 +27,12 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
     }
 
     /**
-     * Returns the median value of the i-th continuous attribute.
-     *
-     * @param splitIndex The attribute to find the median for.
-     * @param dataset The dataset which contains the i-th attribute.
-     * @return The median value of the i-th attribute.
-     */
-    public double median(int splitIndex, LabeledDataset2<F, L> dataset) {
-        List<Double> attributeValues = new ArrayList<>();
-
-        for (F feature : dataset.featureVectors()) {
-            Number attributeValue = (Number) feature.get(splitIndex);
-            attributeValues.add(attributeValue.doubleValue());
-        }
-
-        Collections.sort(attributeValues);
-        int medianIndex = (int) attributeValues.size() / 2;
-        return attributeValues.get(medianIndex);
-    }
-
-    public double average(int splitIndex, LabeledDataset2<F, L> dataset) {
-        double sum = 0;
-
-        for (F feature : dataset.featureVectors()) {
-            Number attributeValue = (Number) feature.get(splitIndex);
-            sum += attributeValue.doubleValue();
-        }
-
-        return sum / dataset.size();
-    }
-
-    public double maxArgument(int splitIndex, LabeledDataset2<F,L> dataset) {
-        double maxGain = -1; //maximum gain to be gained
-        double bestValue = Double.NaN; // best value to split on
-        for (F feature : dataset.featureVectors()) {
-            Number attributeValue = (Number) feature.get(splitIndex);
-            double gain = dataset.gain(splitIndex, attributeValue);
-            if (gain > maxGain) {
-                maxGain = gain;
-                bestValue = attributeValue.doubleValue();
-            }
-        }
-        return bestValue;
-    }
-
-    /**
      * Build the tree with a given dataset.
      * @param dataset  The dataset to build the tree for.
      */
     @Override
     protected void build(LabeledDataset2<F, L> dataset) {
-        int splitIndex = -1; // Index of attribute on which to split
-        double maxGain = -1; // Maximum gain
-        double maxArgument = 0; // In case we end up with a continuous split.
-
-        // Find the attribute that gives the highest gain.
-        for (int i = 0; i < dataset.getNumberOfDimensions(); i++) {
-            double gain;
-            double maxarg = Double.NaN;
-            if (dataset.isContinuousFeature(i)) {
-                maxarg = maxArgument(i, dataset);
-                gain = dataset.gain(i, maxarg);
-            } else {
-                gain = dataset.gain(i);
-            }
-
-            if (gain > maxGain) {
-                maxGain = gain;
-                splitIndex = i;
-                if (dataset.isContinuousFeature(i)) {
-                    maxArgument = maxarg;
-                }
-            }
-        }
-
+        double maxGain = findAttribute(dataset);
         // If maxgain is (near) zero, then we have a leaf.
         if (maxGain <= 0.00001) {
             this.setLabel(dataset.getMostFrequentClass());
@@ -109,13 +41,13 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
 
         // We are not dealing with a leaf, thus have to split.
         Map<Object, LabeledDataset2<F, L>> split;
-        if (dataset.isContinuousFeature(splitIndex)) {
-            setSplit(splitIndex, maxArgument); // Set label in internal node.
-            split = dataset.continuousSplit(splitIndex, maxArgument);
+        if (dataset.isContinuousFeature(splitAttribute)) {
+            setSplit(splitAttribute, splitValue); // Set label in internal node.
+            split = dataset.continuousSplit(splitAttribute, splitValue);
         } else {
-            //Concrete feature
-            setSplit(splitIndex, null); // Set label in internal node.
-            split = dataset.discreteSplit(splitIndex);
+            //Discrete feature
+            setSplit(splitAttribute, null); // Set label in internal node.
+            split = dataset.discreteSplit(splitAttribute);
         }
 
         // We have now split the dataset for an attribute. Each split will now
@@ -134,23 +66,129 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
         }
     }
 
+    /**
+     * Finds the attribute and value that give the highest information gain.
+     * Returns the maximum gain.
+     *
+     * @param dataset dataset containing features
+     * @modifies {@code this.splitAttribute}, {@code this.splitValue}
+     * @post {@code this.splitAttribute} is the attribute with the largest gain
+     * If this attribute is continuous, splitValue contains the value giving the
+     * highest gain.
+     */
+    private double findAttribute(LabeledDataset2<F,L> dataset) {
+        double maxGain = -1; // Maximum gain
+        for (int i = 0; i < dataset.getNumberOfDimensions(); i++) {
+            double gain; //gain of a certain split
+            double bestValue = Double.NaN; //value that maximizes gain in case of a continuous split
+            if (dataset.isContinuousFeature(i)) {
+                bestValue = findSplitValue(i, dataset);
+                gain = dataset.gain(i, bestValue);
+            } else { //discrete
+                gain = dataset.gain(i);
+            }
+            //update variables
+            if (gain > maxGain) {
+                maxGain = gain;
+                this.splitAttribute = i;
+                if (dataset.isContinuousFeature(i)) {
+                    splitValue = bestValue;
+                }
+            }
+        }
+        return maxGain;
+    }
+
+    /**
+     * Returns the value for the attribute at index {@code splitIndex} that
+     * maximizes the information gain.
+     * We compute the information gain for each value, and return the best value.
+     *
+     * @param splitIndex index of the desired attribute to split on
+     * @param dataset dataset containing the features
+     * @pre dataset.isContinuousFeature(splitIndex)
+     * @return the argument maximizing the information gain
+     */
+    public double findSplitValue(int splitIndex, LabeledDataset2<F,L> dataset) {
+        double maxGain = -1; //maximum gain to be gained
+        double bestValue = Double.NaN; // best value to split on
+        for (F feature : dataset.featureVectors()) {
+            Number attributeValue = (Number) feature.get(splitIndex);
+            double gain = dataset.gain(splitIndex, attributeValue);
+            if (gain > maxGain) {
+                maxGain = gain;
+                bestValue = attributeValue.doubleValue();
+            }
+        }
+        return bestValue;
+    }
+
+    /**
+     * Returns the median value of the i-th continuous attribute.
+     *
+     * @param splitIndex The attribute to find the median for.
+     * @param dataset The dataset which contains the i-th attribute.
+     * @return The median value of the i-th attribute.
+     */
+    @Deprecated
+    public double median(int splitIndex, LabeledDataset2<F, L> dataset) {
+        List<Double> attributeValues = new ArrayList<>();
+
+        for (F feature : dataset.featureVectors()) {
+            Number attributeValue = (Number) feature.get(splitIndex);
+            attributeValues.add(attributeValue.doubleValue());
+        }
+
+        Collections.sort(attributeValues);
+        int medianIndex = (int) attributeValues.size() / 2;
+        return attributeValues.get(medianIndex);
+    }
+
+    /**
+     * Returns the average of the attribute with index {@code splitIndex}.
+     *
+     * @param splitIndex index of the desired attribute
+     * @param dataset dataset containing the features
+     * @return the average of the attribute with index {@code splitIndex}
+     */
+    @Deprecated
+    public double average(int splitIndex, LabeledDataset2<F, L> dataset) {
+        double sum = 0;
+
+        for (F feature : dataset.featureVectors()) {
+            Number attributeValue = (Number) feature.get(splitIndex);
+            sum += attributeValue.doubleValue();
+        }
+
+        return sum / dataset.size();
+    }
+
+    /**
+     * Classifies {@code v} according to this decision tree.
+     * Recursively walks the tree to find the classification.
+     * @param v the feature vector to be classified
+     * @return the classification of {@code v}
+     */
     @Override
     public L classify(F v) {
         DecisionTree<F, L> root = this;
         if (root.isLeaf()) {
+            // leaf, we can return the label immediately
             return root.getLabel();
         } else {
-            int index = root.getSplitAttribute();
-            Object attributeValue = v.get(index);
+            int index = root.getSplitAttribute(); // index of attribute split on in this node
+            Object attributeValue = v.get(index); // value of this attribute in the feature vector
             if (v.isContinuous(index) && (Double) attributeValue <= root.splitValue.doubleValue()) {
+                //the value of v <= splitValue, we need to go left
                 root = root.getSubTree("<= " + root.splitValue);
-                //System.out.println("<= " + (Double) attributeValue);
             } else if (v.isContinuous(index)) {
+                // value of v > splitValue, we go right
                 root = root.getSubTree("> " + root.splitValue);
             } else {
                 //discrete attribute
                 root = root.getSubTree(root.splitValue);
             }
+            //recursively go through the tree
             return root.classify(v);
         }
     }

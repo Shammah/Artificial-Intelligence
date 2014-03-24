@@ -29,9 +29,6 @@ public class LabeledTree<Label,T extends LabeledTree<Label,T>> {
      * @return the sub tree with this label; null, if such a  tree does not exist.
      */
     public T getSubTree(Label label) {
-        for (Label l : children.keySet()) {
-            System.out.println(l);
-        }
         return children.get(label);
     }
 
