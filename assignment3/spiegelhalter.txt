@@ -1,3 +1,4 @@
+
 BirthAsphyxia 
 yes           0.1 
 no            0.9       
