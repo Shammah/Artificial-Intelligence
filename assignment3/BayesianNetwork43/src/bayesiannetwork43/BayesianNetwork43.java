@@ -23,12 +23,14 @@ public class BayesianNetwork43 {
      */
     public static void main(String[] args) {
         try {
-            readDatabase("./spiegelhalter.txt");
+            readDatabase("spiegelhalter.txt");
         } catch (FileNotFoundException ex) {
             Logger.getLogger(BayesianNetwork43.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(BayesianNetwork43.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        int i = 5;
     }
 
     private static void readDatabase(String fileName) throws FileNotFoundException, IOException {
@@ -41,12 +43,19 @@ public class BayesianNetwork43 {
         
         // Read until there are no more lines to be read.
         while ((line = br.readLine()) != null) {
-            String[] columns = line.split(" ");
+            // A new table might be ahead!
+            if (line.equals("")) {
+                newTable = true;
+                continue;
+            }
+            
+            String[] columns = line.replaceAll("\\s+", " ").trim().split(" ");
             
             // Create a new table and set the headers
             if (newTable) {
                 ProbabilityTable table = new ProbabilityTable();
                 table.getHeaders().addAll(Arrays.asList(columns));
+                getTables().add(table);
                 
                 // We are done creating a new table and continue to the next line.
                 newTable = false;
