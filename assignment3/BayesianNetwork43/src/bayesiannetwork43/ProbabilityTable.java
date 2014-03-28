@@ -22,20 +22,23 @@ import nl.tue.win.util.Pair;
  * the columns, and a list of rows. A row is defined as a pair, where the first
  * element is a list of conditions, and the second element the probability.
  *
- * For example, for the table: ---------------------------------------- |
- * header1 | header 2 | header 3| | | Dead | Pulse | Talks | 0.5 | | Alive |
- * Pulse | Talks | 0.3 | ----------------------------------------
+ * For example, for the table:
+ * ----------------------------------------
+ * | header1 | header 2 | header 3|       |
+ * | Dead    | Pulse    | Talks   |  0.5  |
+ * | Alive   | Pulse    | Talks   |  0.3  |
+ * ----------------------------------------
  *
- * gives the headers: ["header1", "header2", "header3"] and the rows: (["Dead",
- * "Pulse", "Talks"], 0.5) (["Alive", "Pulse", "Talks"], 0.3)
+ * gives the headers: ["header1", "header2", "header3"]
+ * and the rows:     (["Dead", "Pulse", "Talks"], 0.5)
+ *                   (["Alive", "Pulse", "Talks"], 0.3)
  *
  * @assert _rows.first.size() == _headers.size()
  * @author Group 43
  */
 public class ProbabilityTable {
-
-    private List<String> _headers;
-    private Map<List<String>, Probability> _rows;
+    private List<String>                    _headers;
+    private Map<List<String>, Probability>  _rows;
 
     /**
      * A row is a tuple, whose first element is a list of conditions and whose
@@ -175,8 +178,10 @@ public class ProbabilityTable {
      * are for.
      *
      * More specifically, given the table:
-     * ---------------------------------------- | header1 | header 2 | header 3|
-     * | | Dead | Pulse | Talks | 0.5 | | Alive | Pulse | Talks | 0.3 |
+     * ----------------------------------------
+     * | header1 | header 2 | header 3|       |
+     * | Dead    | Pulse    | Talks   |  0.5  |
+     * | Alive   | Pulse    | Talks   |  0.3  |
      * ----------------------------------------
      *
      * the name of the table will be: "header1".
@@ -266,18 +271,17 @@ public class ProbabilityTable {
     }
 
     /**
-     * This calculates the sum of all probabilities that satisfy a certain set
-     * of conditions.
+     * This calculates the sum of all probabilities that satisfy a certain set of conditions.
      *
-     * For example, we want the probability that: P(A | B = "foo" OR B = "bar"
-     * AND C = "Cloudy")
+     * For example, we want the probability that:
+     *     P(A | B = "foo" OR B = "bar" AND C = "Cloudy")
      *
-     * then, we let: Pair<String, String[]> B = new Pair<>("B", ["foo", "bar"]);
-     * Pair<String, String[]> C = new Pair<>("C", ["Cloudy"]); sumOfConditions(A
-     * + B);
+     * then, we let:
+     *     Pair<String, String[]> B = new Pair<>("B", ["foo", "bar"]);
+     *     Pair<String, String[]> C = new Pair<>("C", ["Cloudy"]);
+     *     sumOfConditions(A + B);
      *
-     * where A is the 'name' of this table, where all these probabilities are
-     * for.
+     * where A is the 'name' of this table, where all these probabilities are for.
      *
      * [<Header, [Possible Column Values]>]
      *
@@ -334,7 +338,7 @@ public class ProbabilityTable {
 
         return sum;
     }
-
+    
     /**
      * Marginalize the table over a given header.
      * 
@@ -419,5 +423,46 @@ public class ProbabilityTable {
             return false;
         }
         return true;
+    }
+
+    /**
+     * Multiplies {@code this} with {@code factor}. Pointwise multiplication
+     * is used.
+     * @param factor The factor to multiply this with.
+     * @return the new {@code ProbabilityTable} resulting from multiplication
+     */
+    public ProbabilityTable multiply(ProbabilityTable factor) {
+        List<String> commonVars = getCommonVariables(this, factor);
+        for (Row row : this.getRows()) {
+            String firstValue = row.first.get(getColumnIndex(commonVars.get(0)));
+
+        }
+        
+        return null;
+    }
+
+    /**
+     * Returns the variables that are contained in both ProbabilityTable f1 and
+     * ProbabilityTable f2.
+     * @param f1 the first {@code ProbabilityTable}
+     * @param f2 the second {@code ProbabilityTable}
+     * @return a {@code List} containing all common variables in the two
+     * {@code ProbabilityTable}s
+     */
+    public List<String> getCommonVariables(ProbabilityTable f1, ProbabilityTable f2) {
+        List<String> commonVars = new ArrayList<>();
+        for (String header : f1.getHeaders()) {
+            if (f2.getHeaders().contains(header)) {
+                commonVars.add(header);
+            }
+        }
+        return commonVars;
+    }
+
+    /**
+     * Returns the parents of this ProbabilityTable in the network.
+     */
+    public List<String> getParents() {
+        return this._headers.subList(1,_headers.size());
     }
 }
