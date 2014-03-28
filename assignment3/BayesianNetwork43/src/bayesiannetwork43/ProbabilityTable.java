@@ -432,10 +432,15 @@ public class ProbabilityTable {
      * @return the new {@code ProbabilityTable} resulting from multiplication
      */
     public ProbabilityTable multiply(ProbabilityTable factor) {
+        ProbabilityTable result = new ProbabilityTable();
         List<String> commonVars = getCommonVariables(factor);
         for (Row row : this.getRows()) {
-            String firstValue = row.first.get(getColumnIndex(commonVars.get(0)));
-            
+            String firstValue;
+            List<String> newVars = this._headers;
+            newVars.addAll(factor.getHeaders());
+            newProb = new Probability(row.second.getValue() * );
+            result.addRow(new Row(newVars,));
+
         }
 
         return null;
