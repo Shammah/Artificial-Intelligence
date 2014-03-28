@@ -1,3 +1,4 @@
+
 import bayesiannetwork43.Probability;
 import bayesiannetwork43.ProbabilityTable;
 import bayesiannetwork43.ProbabilityTable.Row;
@@ -44,7 +45,7 @@ public class ProbabilityTableTest {
         t3.add("HypoxiaInO2");
         assertEquals(t1, tables.get(0).getHeaders());
         assertEquals(t2, tables.get(1).getHeaders());
-        assertEquals(t3, tables.get(7).getHeaders());   
+        assertEquals(t3, tables.get(7).getHeaders());        
     }
     
     @Test
@@ -96,29 +97,29 @@ public class ProbabilityTableTest {
     @Test
     public void getNameTest() {
         assertEquals("HypDistrib", tables.get(1).getName());
-        assertEquals("ChestXray",  tables.get(4).getName());
-        assertEquals("Grunting",   tables.get(5).getName());
-        assertEquals("RUQO2",      tables.get(8).getName());
-        assertEquals("Age",        tables.get(13).getName());
+        assertEquals("ChestXray", tables.get(4).getName());
+        assertEquals("Grunting", tables.get(5).getName());
+        assertEquals("RUQO2", tables.get(8).getName());
+        assertEquals("Age", tables.get(13).getName());
         
         ProbabilityTable table = new ProbabilityTable();
-        assertEquals("",           table.getName());
+        assertEquals("", table.getName());
     }
     
     @Test
     public void getColumnIndexTest() {
-        assertEquals(0,  tables.get(0).getColumnIndex("BirthAsphyxia"));
-        assertEquals(2,  tables.get(2).getColumnIndex("LungParench"));
-        assertEquals(1,  tables.get(15).getColumnIndex("Disease"));
+        assertEquals(0, tables.get(0).getColumnIndex("BirthAsphyxia"));
+        assertEquals(2, tables.get(2).getColumnIndex("LungParench"));
+        assertEquals(1, tables.get(15).getColumnIndex("Disease"));
         assertEquals(-1, tables.get(15).getColumnIndex("Omnomnomnom"));
     }
     
     @Test
     public void sumOfConditionsTest() {
-        String[] bValues = new String[] { "Normal", "Congested" };
+        String[] bValues = new String[]{"Normal", "Congested"};
         Pair<String, String[]> B = new Pair<>("LungParench", bValues);
         
-        String[] cValues = new String[] { "yes" };
+        String[] cValues = new String[]{"yes"};
         Pair<String, String[]> C = new Pair<>("Sick", cValues);
         
         List<Pair<String, String[]>> conditions = new ArrayList<>();
@@ -126,5 +127,26 @@ public class ProbabilityTableTest {
         conditions.add(C);
         
         assertEquals(2.0, tables.get(5).sumOfConditions(conditions), 0.000001);
+    }
+    
+    @Test
+    public void marginalizationTest() {
+        ProbabilityTable marginalizedTable  = tables.get(9).marginalize("CO2Report");
+        ProbabilityTable correctTable       = new ProbabilityTable();
+        correctTable.getHeaders().add("CO2");
+        
+        List<String> row1Vars = new ArrayList<>();
+        row1Vars.add("Normal");
+        correctTable.addRow(new Row(row1Vars, new Probability(1.0)));
+        
+        List<String> row2Vars = new ArrayList<>();
+        row2Vars.add("Low");
+        correctTable.addRow(new Row(row2Vars, new Probability(1.0)));
+        
+        List<String> row3Vars = new ArrayList<>();
+        row3Vars.add("High");
+        correctTable.addRow(new Row(row3Vars, new Probability(1.0)));
+        
+        assertEquals(correctTable, marginalizedTable);
     }
 }
