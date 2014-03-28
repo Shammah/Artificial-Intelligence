@@ -356,30 +356,30 @@ public class ProbabilityTable {
         
         return sum;
     }
-    
+
     /**
      * Marginalize the table over a given header.
-     * 
+     *
      * For example, given the following table:
      * ----------------------
-     * CO2Report | CO2    
+     * CO2Report | CO2
      * ----------------------
-     * <7.5      Normal 0.9 
-     * >=7.5     Normal 0.1 
-     * <7.5      Low    0.9 
-     * >=7.5     Low    0.1 
-     * <7.5      High   0.1 
-     * >=7.5     High   0.9 
-     * 
+     * <7.5      Normal 0.9
+     * >=7.5     Normal 0.1
+     * <7.5      Low    0.9
+     * >=7.5     Low    0.1
+     * <7.5      High   0.1
+     * >=7.5     High   0.9
+     *
      * will be transformed into, when marginalizing over "CO2Report"
-     * 
+     *
      * ----------------------
      * CO2
      * ----------------------
      * Normal 1.0
      * Low    1.0
      * High   1.0
-     * 
+     *
      * @param header The header to marginalize over.
      * @return The marginalized table.
      */
@@ -413,10 +413,10 @@ public class ProbabilityTable {
             marginalizedRow.second  = new Probability(row.second.getValue());
             table.addRow(marginalizedRow);
         }
-        
+
         return table;
     }
-    
+
     @Override
     public int hashCode() {
         int hash = 5;
@@ -450,12 +450,12 @@ public class ProbabilityTable {
      * @return the new {@code ProbabilityTable} resulting from multiplication
      */
     public ProbabilityTable multiply(ProbabilityTable factor) {
-        List<String> commonVars = getCommonVariables(this, factor);
+        List<String> commonVars = getCommonVariables(factor);
         for (Row row : this.getRows()) {
             String firstValue = row.first.get(getColumnIndex(commonVars.get(0)));
-
+            
         }
-        
+
         return null;
     }
 
@@ -467,10 +467,10 @@ public class ProbabilityTable {
      * @return a {@code List} containing all common variables in the two
      * {@code ProbabilityTable}s
      */
-    public List<String> getCommonVariables(ProbabilityTable f1, ProbabilityTable f2) {
+    public List<String> getCommonVariables(ProbabilityTable factor) {
         List<String> commonVars = new ArrayList<>();
-        for (String header : f1.getHeaders()) {
-            if (f2.getHeaders().contains(header)) {
+        for (String header : this.getHeaders()) {
+            if (factor.getHeaders().contains(header)) {
                 commonVars.add(header);
             }
         }
