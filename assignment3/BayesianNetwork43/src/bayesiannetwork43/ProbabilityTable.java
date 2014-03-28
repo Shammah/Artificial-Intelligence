@@ -269,26 +269,26 @@ public class ProbabilityTable {
 
         return tables;
     }
-
+    
     /**
-     * This calculates the sum of all probabilities that satisfy a certain set of conditions.
+     * Extracts the rows from an existing table for a given set of conditions.
      *
-     * For example, we want the probability that:
+     * For example, we want the table such that that:
      *     P(A | B = "foo" OR B = "bar" AND C = "Cloudy")
      *
      * then, we let:
      *     Pair<String, String[]> B = new Pair<>("B", ["foo", "bar"]);
      *     Pair<String, String[]> C = new Pair<>("C", ["Cloudy"]);
-     *     sumOfConditions(A + B);
+     *     underConditions(A + B);
      *
      * where A is the 'name' of this table, where all these probabilities are for.
      *
      * [<Header, [Possible Column Values]>]
      *
      * @param conditions The list of condition pairs.
-     * @return The sum of the probability.
+     * @return A new table that satisfies the given conditions.
      */
-    public double sumOfConditions(List<Pair<String, String[]>> conditions) {
+    public ProbabilityTable underConditions(List<Pair<String, String[]>> conditions) {
         // To make life easier, we will use header indices instead of strings.
         // We replace the header strings with indices.
         List<Pair<Integer, String[]>> iConditions = new ArrayList<>(conditions.size());
@@ -300,6 +300,14 @@ public class ProbabilityTable {
             }
             Pair<Integer, String[]> newPair = new Pair<>(index, condition.second);
             iConditions.add(newPair);
+        }
+        
+        // The new table that will have rows that onl satisfy the given conditions.
+        ProbabilityTable table = new ProbabilityTable();
+        
+        // Copy headers from this table.
+        for (String header : getHeaders()) {
+            table.getHeaders().add(header);
         }
 
         // Now that we have the header indices, we can iterate through all
@@ -330,12 +338,22 @@ public class ProbabilityTable {
                 meetsAllConditions &= containsValue;
             }
 
-            // If all conditions are met on that row, we can use it in our sum.
+            // If all conditions are met on that row, we can use it in our new table.
             if (meetsAllConditions) {
-                sum += row.second.getValue();
+                table.addRow(row);
             }
         }
 
+        return table;
+    }
+
+    public double sumOfProbabilities() {
+        double sum = 0.0;
+        
+        for (Row row : getRows()) {
+            sum += row.second.getValue();
+        }
+        
         return sum;
     }
     

@@ -115,7 +115,7 @@ public class ProbabilityTableTest {
     }
     
     @Test
-    public void sumOfConditionsTest() {
+    public void sumOfProbabilitiesTest() {
         String[] bValues = new String[]{"Normal", "Congested"};
         Pair<String, String[]> B = new Pair<>("LungParench", bValues);
         
@@ -126,7 +126,8 @@ public class ProbabilityTableTest {
         conditions.add(B);
         conditions.add(C);
         
-        assertEquals(2.0, tables.get(5).sumOfConditions(conditions), 0.000001);
+        ProbabilityTable conditionedTable = tables.get(5).underConditions(conditions);
+        assertEquals(2.0, conditionedTable.sumOfProbabilities(), 0.000001);
     }
     
     @Test
