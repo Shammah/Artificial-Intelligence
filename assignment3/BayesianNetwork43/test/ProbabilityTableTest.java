@@ -54,9 +54,12 @@ public class ProbabilityTableTest {
         r1Conditions.add("Congested");
         r1Conditions.add("Normal");
         Row r1 = new Row(r1Conditions, new Probability(0.05));
-        assertEquals(r1.toString(), tables.get(4).getRow(5).toString());
+        assertTrue(tables.get(4).getRows().contains(r1));
         
         tables.get(4).addRow(r1);
+        r1.second = r1.second.add(r1.second);
+        assertTrue(tables.get(4).getRows().contains(r1));
+        
         List<String> r2Conditions = new ArrayList<>();
         r1Conditions.add("Normal");
         r1Conditions.add("Congested");

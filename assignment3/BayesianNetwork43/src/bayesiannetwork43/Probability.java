@@ -8,6 +8,33 @@ package bayesiannetwork43;
  * @author Group 43
  */
 public class Probability {
+
+    @Override
+    public int hashCode() {
+        int hash = 3;
+        hash = 89 * hash + (int) (Double.doubleToLongBits(this._value) ^
+                (Double.doubleToLongBits(this._value) >>> 32));
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        
+        if (getClass() != obj.getClass()) {
+            return false;
+        }
+        
+        final Probability other = (Probability) obj;
+        
+        if (Double.doubleToLongBits(this._value) != Double.doubleToLongBits(other._value)) {
+            return false;
+        }
+        
+        return true;
+    }
     private double _value;
     
     /**
@@ -43,7 +70,6 @@ public class Probability {
     
     /**
      * Calculates the complement of a probability and returns a new probability.
-     * @param p The probability to calculate the complement of.
      * @return A new complemented probability.
      */
     public Probability complement() {

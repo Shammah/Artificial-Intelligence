@@ -6,8 +6,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import nl.tue.win.util.Pair;
 
@@ -33,14 +35,15 @@ import nl.tue.win.util.Pair;
  * @author Group 43
  */
 public class ProbabilityTable {
-    private List<String>    _headers    = new ArrayList<>();
-    private List<Row>       _rows       = new ArrayList<>();
+    private List<String>                    _headers;
+    private Map<List<String>, Probability>  _rows;
     
     /**
      * A row is a tuple, whose first element is a list of conditions and whose
      * second element is the probability.
      */
-    public static class Row extends Pair<List<String>, Probability>{
+    public static class Row extends Pair<List<String>, Probability> {
+
         /**
          * Constructor.
          * @param first List of conditionals.
@@ -69,13 +72,23 @@ public class ProbabilityTable {
             output += "], " + second.getValue() + ")";
             return output;
         }
+        
+        @Override
+        public int hashCode() {
+            return super.hashCode();
+        }
+
+        public boolean equals(Row row) {
+            return first.equals(row.first) && second.equals(row.second); 
+        }
     }
     
     /**
      * Constructor.
      */
     public ProbabilityTable() {
-        
+        _headers = new ArrayList<>();
+        _rows    = new HashMap<>();
     }
     
     /**
@@ -91,16 +104,13 @@ public class ProbabilityTable {
      * @return the rows of the table.
      */
     public List<Row> getRows() {
-        return _rows;
-    }
-    
-    /**
-     * Returns the row at a given index.
-     * @param r The index of the row.
-     * @return the row at the given index.
-     */
-    public Row getRow(int r) {
-        return getRows().get(r);
+        List<Row> rows = new ArrayList<>();
+        
+        for (List<String> key : _rows.keySet()) {
+            rows.add(new Row(key, _rows.get(key)));
+        }
+        
+        return rows;
     }
     
     /**
@@ -115,7 +125,13 @@ public class ProbabilityTable {
                     + "equal the amount of headers.");
         }
         
-        getRows().add(row);
+        // If the row does not yet exist, we simply add it.
+        // Else, we add the given probability to the existing probability.
+        if (!_rows.containsKey(row.first)) {
+            _rows.put(row.first, row.second);
+        } else {
+            _rows.put(row.first, _rows.get(row.first).add(row.second));
+        }
     }
     
     /**
@@ -144,7 +160,7 @@ public class ProbabilityTable {
         if (headerIndex == -1) {
             throw new IndexOutOfBoundsException("Could not find the column index"
                     + "of the header '" + header + "'.");
-        } else{
+        } else {
             return getColumnValueSet(headerIndex);
         }
     }
