@@ -2,9 +2,9 @@ package bayesiannetwork43;
 
 /**
  * General probability utility class.
- * 
+ *
  * Contains basic probability operations and assertions, like 0 <= p <= 1.
- * 
+ *
  * @author Group 43
  */
 public class Probability {
@@ -22,21 +22,21 @@ public class Probability {
         if (obj == null) {
             return false;
         }
-        
+
         if (getClass() != obj.getClass()) {
             return false;
         }
-        
+
         final Probability other = (Probability) obj;
-        
+
         if (Double.doubleToLongBits(this._value) != Double.doubleToLongBits(other._value)) {
             return false;
         }
-        
+
         return true;
     }
     private double _value;
-    
+
     /**
      * Constructor.
      * @param p The probability.
@@ -53,7 +53,7 @@ public class Probability {
     public double getValue() {
         return _value;
     }
-    
+
     /**
      * Sets the value of the probability.
      * @param p The new probability.
@@ -61,13 +61,13 @@ public class Probability {
      */
     public void setValue(double p) throws IllegalArgumentException {
         if (p < 0 || p > 1) {
-            throw new IllegalArgumentException("Probability <" + 
+            throw new IllegalArgumentException("Probability <" +
                     toString() + "> is not in the range [0, 1].");
         }
-        
+
         _value = p;
     }
-    
+
     /**
      * Calculates the complement of a probability and returns a new probability.
      * @return A new complemented probability.
@@ -75,7 +75,7 @@ public class Probability {
     public Probability complement() {
         return new Probability(1.0 - getValue());
     }
-    
+
     /**
      * Adds two probabilities together.
      * @param p The probability to add to the current one.
@@ -84,9 +84,13 @@ public class Probability {
     public Probability add(Probability p) {
         return new Probability(getValue() + p.getValue());
     }
-    
+
     @Override
     public String toString() {
         return "" + getValue();
+    }
+
+    public Probability times(Probability prob) {
+        return new Probability(prob._value * this._value);
     }
 }

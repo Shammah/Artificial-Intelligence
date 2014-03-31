@@ -11,24 +11,26 @@ import java.util.logging.Logger;
  * @author Group 43
  */
 public class BayesianNetwork43 {
-    
+
     private static List<ProbabilityTable> _tables;
-    
+
+    private final static String FILE = "alarm.txt";//"spiegelhalter.txt";
+
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
         try {
-            _tables = ProbabilityTable.readFile("spiegelhalter.txt");
+            _tables = ProbabilityTable.readFile(FILE);
         } catch (FileNotFoundException ex) {
             Logger.getLogger(BayesianNetwork43.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(BayesianNetwork43.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
+
         System.out.println(getTables().get(1).getColumnValueSet(2));
     }
-    
+
     /**
      * Returns the list of all tables that were imported.
      * @return the list of all tables.

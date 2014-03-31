@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -127,8 +128,9 @@ public class ProbabilityTable {
      */
     public void addRow(Row row) throws IllegalArgumentException {
         if (row.first.size() != getHeaders().size()) {
-            throw new IllegalArgumentException("The amount of conditions does not"
-                    + "equal the amount of headers.");
+            throw new IllegalArgumentException("The number of conditions(" +
+                    row.first.size() + ") does not "
+                    + "equal the number of headers(" + getHeaders().size() + ").");
         }
 
         // If the row does not yet exist, we simply add it.
@@ -205,7 +207,6 @@ public class ProbabilityTable {
      */
     public int getColumnIndex(String header) {
         List<String> headers = getHeaders();
-
         for (int i = 0; i < headers.size(); i++) {
             if (header.equals(headers.get(i))) {
                 return i;
@@ -269,7 +270,7 @@ public class ProbabilityTable {
 
         return tables;
     }
-    
+
     /**
      * Extracts the rows from an existing table for a given set of conditions.
      *
@@ -301,10 +302,10 @@ public class ProbabilityTable {
             Pair<Integer, String[]> newPair = new Pair<>(index, condition.second);
             iConditions.add(newPair);
         }
-        
-        // The new table that will have rows that onl satisfy the given conditions.
+
+        // The new table that will have rows that only satisfy the given conditions.
         ProbabilityTable table = new ProbabilityTable();
-        
+
         // Copy headers from this table.
         for (String header : getHeaders()) {
             table.getHeaders().add(header);
@@ -349,11 +350,11 @@ public class ProbabilityTable {
 
     public double sumOfProbabilities() {
         double sum = 0.0;
-        
+
         for (Row row : getRows()) {
             sum += row.second.getValue();
         }
-        
+
         return sum;
     }
 
@@ -450,18 +451,145 @@ public class ProbabilityTable {
      * @return the new {@code ProbabilityTable} resulting from multiplication
      */
     public ProbabilityTable multiply(ProbabilityTable factor) {
-        ProbabilityTable result = new ProbabilityTable();
         List<String> commonVars = getCommonVariables(factor);
-        for (Row row : this.getRows()) {
-            String firstValue;
-            List<String> newVars = this._headers;
-            newVars.addAll(factor.getHeaders());
-            newProb = new Probability(row.second.getValue() * );
-            result.addRow(new Row(newVars,));
+        List<ProbabilityTable> tables = splitTable(factor, commonVars);
+        return mergeTables(tables);
+    }
 
+    public ProbabilityTable mergeTables(List<ProbabilityTable> tables) {
+        ProbabilityTable result = new ProbabilityTable();
+        result._headers = tables.get(0).getHeaders();
+        for (ProbabilityTable table : tables) {
+            for (Row row : table.getRows()) {
+                result.addRow(row);
+            }
         }
+        return result;
+    }
 
-        return null;
+    /**
+     * Returns a {@code List} with {@code ProbabilityTable}s that is split on
+     * the various values that the variables in {@code commonVars} can take on.
+     *
+     * @param factor the original {@code ProbabilityTable} that needs to be split.
+     * @param commonVars the variables on which needs to be split
+     * @return a {@code List} containing {@code ProbabilityTable}s such that
+     * it is split according to the {@code commonVars}.
+     */
+    private List<ProbabilityTable> splitTable(ProbabilityTable factor,
+                                                List<String> commonVars) {
+        List<ProbabilityTable> result = new ArrayList<>();
+
+        //base case
+        if (commonVars.isEmpty()) {
+            return result;
+        }
+        String commonVar = commonVars.get(0); //get the first one, do others recursively
+        for (String value : getColumnValueSet(commonVar)) {
+            System.out.println("starting with value " + value);
+            ProbabilityTable newTable = new ProbabilityTable();
+            List<Pair<String, String[]>> condition = new ArrayList<>();
+            condition.add(new Pair<>(commonVar, new String[] {value}));
+            newTable._headers = mergeHeaders(factor.getHeaders(), commonVars);
+            System.out.println(newTable._headers);
+            for (Row row1 : this.underConditions(condition).getRows()) {
+                for (Row row2 : factor.underConditions(condition).getRows()) {
+                    Row newRow = mergeRows(row1, row2, commonVars);
+                    System.out.println(newRow);
+                    newTable.addRow(newRow);
+                }
+            }
+            condition.clear();
+            result.add(newTable);
+        }
+        return result;
+    }
+
+    private Row mergeRows(Row row1, Row row2, List<String> commonVars) {
+        List<String> first = new ArrayList<>();
+        Set<Integer> indices = new HashSet<>(); //set containing all indices of common vars
+        // enter the common variables
+        for (String commonVar : commonVars) {
+            first.add(row1.first.get(getColumnIndex(commonVar)));
+            indices.add(getColumnIndex(commonVar));
+        }
+        // add the elements of the "rightmost" factor
+        for (int i = 0; i < row2.first.size(); i ++) {
+            if (! (indices.contains(i))) {
+                first.add(row1.first.get(i));
+            }
+        }
+        // add the elements of the "rightmost" factor
+        for (int i = 0; i < row1.first.size(); i ++) {
+            if (! (indices.contains(i))) {
+                first.add(row1.first.get(i));
+            }
+        }
+        Probability second = row1.second.times(row2.second);
+        return new Row(first, second);
+    }
+
+    /**
+     * Merges the headers of this table and the headers given in {@code headers}.
+     * @param headers the headers of the other factor
+     * @return a merged list of the headers. First the common variables, then
+     * the headers given in {@code headers}, then the headers in {@code this}.
+     */
+    private List<String> mergeHeaders(List<String> headers, List<String> commonVars) {
+        List<String> result = new ArrayList<>();
+        Set<String> resultSet = new HashSet<>();
+        for (String commonVar : commonVars) {
+            resultSet.add(commonVar);
+            result.add(commonVar);
+        }
+        for (Iterator iter = headers.listIterator(); iter.hasNext(); ) {
+            String element = (String) iter.next();
+            if (resultSet.add(element)) {
+                result.add(element);
+            }
+        }
+        for (Iterator iter = this.getHeaders().listIterator(); iter.hasNext(); ) {
+            String element = (String) iter.next();
+            if (resultSet.add(element)) {
+                result.add(element);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Returns the concatenation of two lists.
+     * @param list1 the first list
+     * @param list2 the second list
+     * @return list1 ^ list2
+     */
+    public List<ProbabilityTable> concatenateList(List<ProbabilityTable> list1,
+                                                List<ProbabilityTable> list2) {
+        for (ProbabilityTable element : list2) {
+            list1.add(element);
+        }
+        return list1;
+    }
+
+
+    /**
+     * Returns the tail of the list where the first {@code n} elements are
+     * removed from the list.
+     *
+     * @param list the input list
+     * @param n the number of elemenets to be removed from the list
+     * @pre n >= 0
+     * @return the tail of the list where the first {@code n} elements are
+     * removed from the list
+     */
+    public List<String> reduceList(List<String> list, int n) {
+        if (list.isEmpty()) {
+            return list;
+        }
+        for (int index = 0; index < n; index ++) {
+            list.remove(0);
+        }
+        return list;
     }
 
     /**

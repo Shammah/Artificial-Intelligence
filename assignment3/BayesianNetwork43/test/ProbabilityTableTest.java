@@ -125,7 +125,7 @@ public class ProbabilityTableTest {
         List<Pair<String, String[]>> conditions = new ArrayList<>();
         conditions.add(B);
         conditions.add(C);
-        
+
         ProbabilityTable conditionedTable = tables.get(5).underConditions(conditions);
         assertEquals(2.0, conditionedTable.sumOfProbabilities(), 0.000001);
     }
@@ -158,5 +158,53 @@ public class ProbabilityTableTest {
 
         variables = tables.get(3).getCommonVariables(tables.get(4));
         assertEquals("LungParench", variables.get(0));
+    }
+
+    @Test
+    public void testConcatenateList() {
+        List<ProbabilityTable> list1 = new ArrayList<>();
+        List<ProbabilityTable> list2 = new ArrayList<>();
+        int n = tables.size();
+        for (int i = 0; i < n; i ++) {
+            if (i < n/2) {
+                list1.add(tables.get(i));
+            } else {
+                list2.add(tables.get(i));
+            }
+        }
+        assertEquals(tables, new ProbabilityTable().concatenateList(list1, list2));
+    }
+
+    @Test
+    public void testReduceList() {
+        List<String> list = new ArrayList<>();
+        list.add("a");
+        list.add("b");
+        list.add("c");
+        List<String> testList = new ArrayList<>();
+        testList.add("b");
+        testList.add("c");
+        assertEquals(testList, new ProbabilityTable().reduceList(list, 1));
+    }
+
+    @Test
+    public void testReduceList2() {
+        List<String> list = new ArrayList<>();
+        list.add("a");
+        list.add("b");
+        list.add("c");
+        List<String> testList = new ArrayList<>();
+        testList.add("c");
+        assertEquals(testList, new ProbabilityTable().reduceList(list, 2));
+    }
+
+    @Test
+    public void testMultiply() throws IOException {
+        tables = ProbabilityTable.readFile("alarm.txt");
+        ProbabilityTable Alarm = tables.get(2);
+        ProbabilityTable John = tables.get(3);
+        ProbabilityTable Mary = tables.get(4);
+        ProbabilityTable result = Mary.multiply(John);
+        ProbabilityTable secondMult = result.multiply(Alarm);
     }
 }
