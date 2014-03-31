@@ -2,6 +2,7 @@ package bayesiannetwork43;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -35,7 +36,8 @@ public class BayesianNetwork43 {
             Logger.getLogger(BayesianNetwork43.class.getName()).log(Level.SEVERE, null, ex);
         }
         readQuery();
-        
+        Probability[] output = enumerateAsk();
+        writeOutput(output);
     }
 
     private static void readQuery() {
@@ -58,11 +60,84 @@ public class BayesianNetwork43 {
         }
     }
 
+    public static Probability[] enumerateAsk() {
+        int n = getTable(queryVar).getColumnValueSet(queryVar).size();
+        Map<String, Probability> output = new HashMap<>();
+        for (String value : getTable(queryVar).getColumnValueSet(queryVar)) {
+            output.put(value, enumerate(getVariables(), extendMap(givenValues, queryVar, value)));
+        }
+        return normalize(output);
+    }
+
+    public static Probability enumerate(List<String> variables, Map<String, String> givenValues) {
+        if (variables.isEmpty()) {
+            return new Probability(1.0);
+        }
+        String variable = variables.get(0);
+        List<String> tailVars = variables.subList(1, variables.size());
+        if (givenValues.keySet().contains(variable)) { //variable is fixed
+            String value = givenValues.get(variable);
+            //return getTable(variable) * (enumerate(tailVars, givenValues));
+        } else { //variable is free
+           // return enumerate(tailVars, extendMap(givenValues, variable, value));
+        }
+        return null;//TODO
+
+    }
+
+    private static Map<String, String> extendMap(Map<String, String> map, String variable, String value) {
+        Map<String, String> result = new HashMap<>(map);
+        result.put(variable, value);
+        return result;
+    }
+
+    public static Probability[] normalize(Map<String, Probability> map) {
+        Probability[] result = new Probability[map.size()];
+        double sum = 0;
+        for (String variable : map.keySet()) {
+            sum += map.get(variable).getValue();
+        }
+        int i = 0;
+        for (String variable : map.keySet()) {
+            result[i] = new Probability(map.get(variable).getValue() * 1.0/sum);
+            i ++;
+        }
+        return result;
+    }
+
     /**
      * Returns the list of all tables that were imported.
      * @return the list of all tables.
      */
     public static List<ProbabilityTable> getTables() {
         return _tables;
+    }
+
+    public static ProbabilityTable getTable(String header) {
+        ProbabilityTable result = null;
+        for (ProbabilityTable table : _tables) {
+            if (table.getName() == header) {
+                result = table;
+            }
+        }
+        assert result != null;
+        return result;
+    }
+
+    public static List<String> getVariables() {
+        List<String> variables = new ArrayList<>();
+        for (ProbabilityTable table : _tables) {
+            variables.add(table.getName());
+        }
+        return variables;
+    }
+
+    public static void writeOutput(Probability[] probs) {
+        String output = "(";
+        for (Probability prob : probs) {
+            output += prob.toString();
+        }
+        output += ")";
+        System.out.println(output);
     }
 }
