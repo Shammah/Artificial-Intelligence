@@ -1,7 +1,9 @@
 package bayesiannetwork43;
 
+import bayesiannetwork43.ProbabilityTable.Row;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,6 +14,7 @@ import java.util.Scanner;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import nl.tue.win.util.Pair;
 
 /**
  *
@@ -19,32 +22,37 @@ import java.util.logging.Logger;
  */
 public class BayesianNetwork43 {
 
-    public static List<ProbabilityTable> _tables;
+    public List<ProbabilityTable> _tables;
+    private String queryVar;
+    private Map<String, String> givenValues = new HashMap<>();
 
-    private static String queryVar;
-
-    private static Map<String, String> givenValues = new HashMap<>();
-
-    private final static String FILE = "spiegelhalter.txt";//"spiegelhalter.txt";
+    private final static String FILE = "alarm.txt";//"spiegelhalter.txt";
 
     /**
      * @param args the command line arguments
      */
     public static void main(String[] args) {
+        BayesianNetwork43 bn = null;
         try {
-            _tables = ProbabilityTable.readFile(FILE);
+            bn = new BayesianNetwork43();
+            bn._tables = ProbabilityTable.readFile(FILE);
         } catch (FileNotFoundException ex) {
             Logger.getLogger(BayesianNetwork43.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(BayesianNetwork43.class.getName()).log(Level.SEVERE, null, ex);
         }
-        readQuery();
-        Probability[] output = enumerateAsk();
-        writeOutput(output);
+        bn.readQuery(null);
+        ProbabilityTable output = bn.eliminate();
+        bn.writeOutput(output);
     }
 
-    private static void readQuery() {
-        Scanner scanner = new Scanner(System.in);
+    public void readQuery(String input) {
+        Scanner scanner;
+        if (input != null) {
+            scanner = new Scanner(input);
+        } else {
+            scanner = new Scanner(System.in);
+        }
         scanner.next(); //ignore P(
         queryVar = scanner.next(); //store query variable
         scanner.next(); //ignore |
@@ -55,53 +63,79 @@ public class BayesianNetwork43 {
                 variable = variable.replace('=',' ');
                 String[] parts = variable.split("\\s+"); // split on space
                 variable = parts[0];
-                String value = parts[1];
+                String value = parts[1].replaceAll(",", "");
                 givenValues.put(variable, value);
             } else {
                 stop = true;
             }
         }
     }
-
-    public static Probability[] enumerateAsk() {
-        System.out.println(queryVar);
-        int n = getTable(queryVar).getColumnValueSet(queryVar).size();
-        Map<String, Probability> output = new HashMap<>();
-        for (String value : getTable(queryVar).getColumnValueSet(queryVar)) {
-            output.put(value, enumerate(getVariables(), extendMap(givenValues, queryVar, value)));
+    
+    public ProbabilityTable eliminate() {
+        Set<String>  relevantVariables      = findRelevantVariables();
+        List<String> topologicalVariables   = topologicalSort();
+  
+        Iterator<String> iter               = topologicalVariables.iterator();
+        ProbabilityTable result             = getTable(iter.next());
+        
+        List<Pair<String, String[]>> filter = new ArrayList<>();
+        String filterValue                  = givenValues.get(result.getName());
+        if (filterValue != null) {
+            filter.add(new Pair<>(result.getName(), new String[] { filterValue }));
+            result                              = result.filter(filter);
         }
-        return normalize(output);
+        
+        while (iter.hasNext()) {
+            String variable = iter.next();
+            if (!relevantVariables.contains(variable)) {
+                continue;
+            }
+            
+            // Are we fixed or free?
+            ProbabilityTable varTable = getTable(variable);
+            if (givenValues.containsKey(variable)) {
+                filter = new ArrayList<>();
+                filter.add(new Pair<>(variable, new String[] { givenValues.get(variable) }));
+                varTable = varTable.filter(filter);
+                result = result.multiply(varTable);
+            } else if (!variable.equals(queryVar)){
+                result = result.multiply(varTable).marginalize(variable);
+            } else {
+                result = result.multiply(varTable);
+            }
+        }
+        
+        return result.normalize();
+    }
+    
+    public List<String> topologicalSort() {
+        List<String> result = new ArrayList<>();
+        Set<String> variables = new HashSet<>(getVariables());
+        Set<String> leaves;
+        
+        while (! variables.isEmpty()) {
+            leaves = findLeaves(variables);
+            Set<String> toRemove = new HashSet<>();
+            for (String node : variables) {
+                if (leaves.contains(node)) {
+                    result.add(node);
+                    toRemove.add(node);
+                }
+            }
+            variables.removeAll(toRemove);
+            toRemove.clear();
+        }
+        return result;
     }
 
-    public static Probability enumerate(List<String> variables, Map<String, String> givenValues) {
-        if (variables.isEmpty()) {
-            return new Probability(1.0);
-        }
-        String variable = variables.get(0);
-        List<String> tailVars = variables.subList(1, variables.size());
-        if (givenValues.keySet().contains(variable)) { //variable is fixed
-            String value = givenValues.get(variable);
-           // return getTable(variable).getParents() * (enumerate(tailVars, givenValues));
-        } else { //variable is free
-            //return enumerate(tailVars, extendMap(givenValues, variable, value));
-        }
-        return null;//TODO
-    }
-
-    public static ProbabilityTable findFormula() {
-        ProbabilityTable result = new ProbabilityTable();
-        Set<String> leaves = findLeaves();
-        Iterator iter = leaves.iterator();
-        ProbabilityTable factor = getTable((String) iter.next());
-        while(iter.hasNext()) {
-            String nextVariable = (String) iter.next();
-            factor = factor.multiply(getTable(nextVariable));
-        }
-    }
-
-    public static Set<String> findLeaves() {
-        Set<String> variables = new HashSet(getVariables());
+    /**
+     * Finds all leaves in the Bayesian network.
+     * @return a list of leaves.
+     */
+    public Set<String> findLeaves(Set<String> variables) {
+        variables = new HashSet(variables);
         Set<String> parents = new HashSet();
+        
         for (String variable : variables) {
            for (ProbabilityTable table : _tables) {
                if (table.getName().equals(variable)) {
@@ -111,27 +145,14 @@ public class BayesianNetwork43 {
                }
            }
         }
+        
         variables.removeAll(parents);
         return variables;
     }
 
-    private static Map<String, String> extendMap(Map<String, String> map, String variable, String value) {
+    private Map<String, String> extendMap(Map<String, String> map, String variable, String value) {
         Map<String, String> result = new HashMap<>(map);
         result.put(variable, value);
-        return result;
-    }
-
-    public static Probability[] normalize(Map<String, Probability> map) {
-        Probability[] result = new Probability[map.size()];
-        double sum = 0;
-        for (String variable : map.keySet()) {
-            sum += map.get(variable).getValue();
-        }
-        int i = 0;
-        for (String variable : map.keySet()) {
-            result[i] = new Probability(map.get(variable).getValue() * 1.0/sum);
-            i ++;
-        }
         return result;
     }
 
@@ -139,11 +160,16 @@ public class BayesianNetwork43 {
      * Returns the list of all tables that were imported.
      * @return the list of all tables.
      */
-    public static List<ProbabilityTable> getTables() {
+    public List<ProbabilityTable> getTables() {
         return _tables;
     }
 
-    public static ProbabilityTable getTable(String header) {
+    /**
+     * Returns a table by looking for its table name.
+     * @param header The name of the table.
+     * @return The table if present, null otherwise.
+     */
+    public ProbabilityTable getTable(String header) {
         ProbabilityTable result = null;
         for (ProbabilityTable table : _tables) {
             if (table.getName().equals(header)) {
@@ -154,19 +180,64 @@ public class BayesianNetwork43 {
         return result;
     }
 
-    public static List<String> getVariables() {
+    /**
+     * Returns a list of all variables in the network.
+     * @return a list of all variables in the network.
+     */
+    public List<String> getVariables() {
         List<String> variables = new ArrayList<>();
+        
         for (ProbabilityTable table : _tables) {
             variables.add(table.getName());
         }
+        
         return variables;
     }
-
-    public static void writeOutput(Probability[] probs) {
-        String output = "(";
-        for (Probability prob : probs) {
-            output += prob.toString();
+    
+    public Set<String> findRelevantVariables() {
+        Set<String> relevantVars = new HashSet<>();
+        relevantVars.add(queryVar);
+        
+        // Add all variables from the given set.
+        for (String variable : givenValues.keySet()) {
+            relevantVars.add(variable);
         }
+        
+        List<String> currentNodes = new ArrayList<>(relevantVars);
+        List<String> futureNodes = new ArrayList<>();
+        while (! currentNodes.isEmpty()) {
+            for (String currentNode : currentNodes) {
+                List<String> parents = new ArrayList(getTable(currentNode).getParents());
+                while (! parents.isEmpty()) {
+                    List<String> toRemove= new ArrayList<>();
+                    for (String parent : parents) {
+                        relevantVars.add(parent);
+                        futureNodes.add(parent);
+                        toRemove.add(parent);
+                    }
+                    parents.removeAll(toRemove);
+
+                }
+            }
+            currentNodes.clear();
+            List<String> toRemove= new ArrayList<>();
+            for (String node : futureNodes) {
+                currentNodes.add(node);
+                toRemove.add(node);
+            }
+            futureNodes.removeAll(toRemove);
+        }
+        return relevantVars;
+    }
+
+    public void writeOutput(ProbabilityTable probs) {
+        String output = "(";
+        DecimalFormat format = new DecimalFormat("#.####");
+        
+        for (Row row : probs.getRows()) {
+            output += format.format(row.second.getValue()) + ", ";
+        }
+        
         output += ")";
         System.out.println(output);
     }

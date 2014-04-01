@@ -326,7 +326,6 @@ public class ProbabilityTable {
         // the rows and see if they match the given conditions.
         //
         // So, for each row
-        double sum = 0.0;
         for (Row row : getRows()) {
             boolean meetsAllConditions = true;
 
@@ -576,6 +575,20 @@ public class ProbabilityTable {
      */
     public List<String> getParents() {
         return this._headers.subList(1,_headers.size());
+    }
+    
+    /**
+     * Returns the probability if the first row if present.
+     * @return the probability of the first row, null if there are no rows.
+     */
+    public Probability getProbability() {
+        List<Row> rows = getRows();
+        
+        if (rows.isEmpty()) {
+            return null;
+        } else {
+            return rows.iterator().next().second;
+        }
     }
     
     @Override
