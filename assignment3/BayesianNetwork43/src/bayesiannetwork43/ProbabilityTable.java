@@ -72,7 +72,7 @@ public class ProbabilityTable {
                 output += ", " + conditional;
             }
 
-            output += "], " + second.getValue() + ")";
+            output += "], "+ second.getValue() + ")";
             return output;
         }
 
@@ -428,6 +428,21 @@ public class ProbabilityTable {
 
         return table;
     }
+    
+    public ProbabilityTable normalize() {
+        double sum                          = sumOfProbabilities();
+        ProbabilityTable normalizedTable    = new ProbabilityTable();
+        normalizedTable._headers            = getHeaders();
+        
+        for (Row row : getRows()) {
+            Row normalizedRow               = new Row();
+            normalizedRow.first             = row.first;
+            normalizedRow.second            = new Probability(row.second.getValue() / sum);
+            normalizedTable.addRow(normalizedRow);
+        }
+        
+        return normalizedTable;
+    }
 
     @Override
     public int hashCode() {
@@ -539,8 +554,7 @@ public class ProbabilityTable {
     /**
      * Returns the variables that are contained in both ProbabilityTable f1 and
      * ProbabilityTable f2.
-     * @param f1 the first {@code ProbabilityTable}
-     * @param f2 the second {@code ProbabilityTable}
+     * @param factor the other table to find the common headers with.
      * @return a {@code List} containing all common variables in the two
      * {@code ProbabilityTable}s
      */
@@ -558,6 +572,7 @@ public class ProbabilityTable {
 
     /**
      * Returns the parents of this ProbabilityTable in the network.
+     * @return a list of parent headers.
      */
     public List<String> getParents() {
         return this._headers.subList(1,_headers.size());

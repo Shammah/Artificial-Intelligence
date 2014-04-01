@@ -185,6 +185,31 @@ public class ProbabilityTableTest {
         filter.add(new Pair<>("Mary", new String[] { "yes" }));
         filter.add(new Pair<>("John", new String[] { "yes" }));
         
-        System.out.println(result.filter(filter));
+        ProbabilityTable expected = new ProbabilityTable();
+        expected.getHeaders().add("Mary");
+        expected.getHeaders().add("Alarm");
+        expected.getHeaders().add("John");
+        
+        Row r1 = new Row();
+        List<String> l1Vals = new ArrayList<>();
+        l1Vals.add("yes");
+        l1Vals.add("yes");
+        l1Vals.add("yes");
+        r1.first = l1Vals;
+        r1.second = new Probability(0.63);
+        
+        Row r2 = new Row();
+        List<String> l2Vals = new ArrayList<>();
+        l2Vals.add("yes");
+        l2Vals.add("no");
+        l2Vals.add("yes");
+        r2.first = l2Vals;
+        r2.second = new Probability(5.0E-4);
+        
+        expected.addRow(r1);
+        expected.addRow(r2);
+        result = result.filter(filter);
+        System.out.println(result);
+        assertEquals(expected, result);
     }
 }
