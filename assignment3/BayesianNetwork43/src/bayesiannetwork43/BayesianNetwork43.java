@@ -4,9 +4,12 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -16,13 +19,13 @@ import java.util.logging.Logger;
  */
 public class BayesianNetwork43 {
 
-    private static List<ProbabilityTable> _tables;
+    public static List<ProbabilityTable> _tables;
 
     private static String queryVar;
 
     private static Map<String, String> givenValues = new HashMap<>();
 
-    private final static String FILE = "alarm.txt";//"spiegelhalter.txt";
+    private final static String FILE = "spiegelhalter.txt";//"spiegelhalter.txt";
 
     /**
      * @param args the command line arguments
@@ -61,6 +64,7 @@ public class BayesianNetwork43 {
     }
 
     public static Probability[] enumerateAsk() {
+        System.out.println(queryVar);
         int n = getTable(queryVar).getColumnValueSet(queryVar).size();
         Map<String, Probability> output = new HashMap<>();
         for (String value : getTable(queryVar).getColumnValueSet(queryVar)) {
@@ -77,12 +81,38 @@ public class BayesianNetwork43 {
         List<String> tailVars = variables.subList(1, variables.size());
         if (givenValues.keySet().contains(variable)) { //variable is fixed
             String value = givenValues.get(variable);
-            //return getTable(variable) * (enumerate(tailVars, givenValues));
+           // return getTable(variable).getParents() * (enumerate(tailVars, givenValues));
         } else { //variable is free
-           // return enumerate(tailVars, extendMap(givenValues, variable, value));
+            //return enumerate(tailVars, extendMap(givenValues, variable, value));
         }
         return null;//TODO
+    }
 
+    public static ProbabilityTable findFormula() {
+        ProbabilityTable result = new ProbabilityTable();
+        Set<String> leaves = findLeaves();
+        Iterator iter = leaves.iterator();
+        ProbabilityTable factor = getTable((String) iter.next());
+        while(iter.hasNext()) {
+            String nextVariable = (String) iter.next();
+            factor = factor.multiply(getTable(nextVariable));
+        }
+    }
+
+    public static Set<String> findLeaves() {
+        Set<String> variables = new HashSet(getVariables());
+        Set<String> parents = new HashSet();
+        for (String variable : variables) {
+           for (ProbabilityTable table : _tables) {
+               if (table.getName().equals(variable)) {
+                   for (String parent : table.getParents()) {
+                       parents.add(parent);
+                   }
+               }
+           }
+        }
+        variables.removeAll(parents);
+        return variables;
     }
 
     private static Map<String, String> extendMap(Map<String, String> map, String variable, String value) {
@@ -116,7 +146,7 @@ public class BayesianNetwork43 {
     public static ProbabilityTable getTable(String header) {
         ProbabilityTable result = null;
         for (ProbabilityTable table : _tables) {
-            if (table.getName() == header) {
+            if (table.getName().equals(header)) {
                 result = table;
             }
         }
