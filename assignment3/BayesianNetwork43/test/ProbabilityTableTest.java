@@ -126,7 +126,7 @@ public class ProbabilityTableTest {
         conditions.add(B);
         conditions.add(C);
 
-        ProbabilityTable conditionedTable = tables.get(5).underConditions(conditions);
+        ProbabilityTable conditionedTable = tables.get(5).filter(conditions);
         assertEquals(2.0, conditionedTable.sumOfProbabilities(), 0.000001);
     }
 
@@ -152,50 +152,24 @@ public class ProbabilityTableTest {
     }
 
     @Test
-    public void testCommonVariables() {
-        List<String> variables = tables.get(1).getCommonVariables(tables.get(2));
-        assertEquals("CardiacMixing", variables.get(0));
+    public void testCommonHeaders() {
+        List<String> variables = tables.get(1).getCommonHeaders(tables.get(2));
+        assertEquals("CardiacMixing", variables.iterator().next());
 
-        variables = tables.get(3).getCommonVariables(tables.get(4));
-        assertEquals("LungParench", variables.get(0));
+        variables = tables.get(3).getCommonHeaders(tables.get(4));
+        assertEquals("LungParench", variables.iterator().next());
     }
-
+    
     @Test
-    public void testConcatenateList() {
-        List<ProbabilityTable> list1 = new ArrayList<>();
-        List<ProbabilityTable> list2 = new ArrayList<>();
-        int n = tables.size();
-        for (int i = 0; i < n; i ++) {
-            if (i < n/2) {
-                list1.add(tables.get(i));
-            } else {
-                list2.add(tables.get(i));
-            }
-        }
-        assertEquals(tables, new ProbabilityTable().concatenateList(list1, list2));
-    }
+    public void mergeHeadersTest() {
+        List<String> l = new ArrayList<>();
+        l.add("HypDistrib");
+        l.add("DuctFlow");
+        l.add("CardiacMixing");
+        l.add("HypoxiaInO2");
+        l.add("LungParench");
 
-    @Test
-    public void testReduceList() {
-        List<String> list = new ArrayList<>();
-        list.add("a");
-        list.add("b");
-        list.add("c");
-        List<String> testList = new ArrayList<>();
-        testList.add("b");
-        testList.add("c");
-        assertEquals(testList, new ProbabilityTable().reduceList(list, 1));
-    }
-
-    @Test
-    public void testReduceList2() {
-        List<String> list = new ArrayList<>();
-        list.add("a");
-        list.add("b");
-        list.add("c");
-        List<String> testList = new ArrayList<>();
-        testList.add("c");
-        assertEquals(testList, new ProbabilityTable().reduceList(list, 2));
+        assertEquals(l, tables.get(1).mergeHeaders(tables.get(2).getHeaders()));
     }
 
     @Test
@@ -205,6 +179,12 @@ public class ProbabilityTableTest {
         ProbabilityTable John = tables.get(3);
         ProbabilityTable Mary = tables.get(4);
         ProbabilityTable result = Mary.multiply(John);
-        ProbabilityTable secondMult = result.multiply(Alarm);
+        
+        // Filter out Mary = yes and John = yes.
+        List<Pair<String, String[]>> filter = new ArrayList<>();
+        filter.add(new Pair<>("Mary", new String[] { "yes" }));
+        filter.add(new Pair<>("John", new String[] { "yes" }));
+        
+        System.out.println(result.filter(filter));
     }
 }
