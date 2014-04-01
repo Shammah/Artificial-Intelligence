@@ -456,44 +456,6 @@ public class ProbabilityTable {
     }
 
     /**
-     * Returns a {@code List} with {@code ProbabilityTable}s that is split on
-     * the various values that the variables in {@code commonVars} can take on.
-     *
-     * @param factor the original {@code ProbabilityTable} that needs to be split.
-     * @param commonVars the variables on which needs to be split
-     * @return a {@code List} containing {@code ProbabilityTable}s such that
-     * it is split according to the {@code commonVars}.
-    private List<ProbabilityTable> splitTable(ProbabilityTable factor,
-                                                Set<String> commonVars) {
-        List<ProbabilityTable> result = new ArrayList<>();
-
-        //base case
-        if (commonVars.isEmpty()) {
-            return result;
-        }
-        String commonVar = commonVars.iterator().next(); //get the first one, do others recursively
-        for (String value : getColumnValueSet(commonVar)) {
-            System.out.println("starting with value " + value);
-            ProbabilityTable newTable = new ProbabilityTable();
-            List<Pair<String, String[]>> condition = new ArrayList<>();
-            condition.add(new Pair<>(commonVar, new String[] {value}));
-            newTable._headers = mergeHeaders(factor.getHeaders());
-            System.out.println(newTable._headers);
-            for (Row row1 : this.filter(condition).getRows()) {
-                for (Row row2 : factor.filter(condition).getRows()) {
-                    Row newRow = mergeRows(row1, row2, commonVars);
-                    System.out.println(newRow);
-                    newTable.addRow(newRow);
-                }
-            }
-            condition.clear();
-            result.add(newTable);
-        }
-        return result;
-    }
-     */
-
-    /**
      * Merges the rows of two tables with common headers.
      * 
      * This is in fact the actual (natural-join) multiplication of tables.
