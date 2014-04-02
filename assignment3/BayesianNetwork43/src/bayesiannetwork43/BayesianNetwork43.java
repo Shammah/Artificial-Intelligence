@@ -29,7 +29,7 @@ public class BayesianNetwork43 {
     private String queryVar;
     private Map<String, String> givenValues = new HashMap<>();
 
-    private final static String FILE = "alarm.txt";//"spiegelhalter.txt";
+    private final static String FILE = "spiegelhalter.txt";//"spiegelhalter.txt";
 
     /**
      * @param args the command line arguments
@@ -75,11 +75,20 @@ public class BayesianNetwork43 {
     }
 
     public ProbabilityTable eliminate() {
+        ProbabilityTable result;
         Set<String>  relevantVariables      = findRelevantVariables();
         List<String> topologicalVariables   = topologicalSort();
 
         Iterator<String> iter               = topologicalVariables.iterator();
-        ProbabilityTable result             = getTable(iter.next());
+        String firstVar = iter.next();
+        while (true) {
+            if (relevantVariables.contains(firstVar)) {
+                result                      = getTable(firstVar);
+                break;
+            } else {
+                firstVar = iter.next();
+            }
+        }
 
         List<Pair<String, String[]>> filter = new ArrayList<>();
         String filterValue                  = givenValues.get(result.getName());
@@ -151,12 +160,6 @@ public class BayesianNetwork43 {
 
         variables.removeAll(parents);
         return variables;
-    }
-
-    private Map<String, String> extendMap(Map<String, String> map, String variable, String value) {
-        Map<String, String> result = new HashMap<>(map);
-        result.put(variable, value);
-        return result;
     }
 
     /**
