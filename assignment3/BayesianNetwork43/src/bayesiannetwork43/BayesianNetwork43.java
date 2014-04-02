@@ -102,21 +102,19 @@ public class BayesianNetwork43 {
 
         while (iter.hasNext()) {
             String variable = iter.next();
-            if (!relevantVariables.contains(variable)) {
-                continue;
-            }
-
-            // Are we fixed or free?
-            ProbabilityTable varTable = getTable(variable);
-            if (givenValues.containsKey(variable)) {
-                filter = new ArrayList<>();
-                filter.add(new Pair<>(variable, new String[] { givenValues.get(variable) }));
-                varTable = varTable.filter(filter);
-                result = result.multiply(varTable);
-            } else if (!variable.equals(queryVar)){
-                result = result.multiply(varTable).marginalize(variable);
-            } else {
-                result = result.multiply(varTable);
+            if (relevantVariables.contains(variable)) {
+                // Are we fixed or free?
+                ProbabilityTable varTable = getTable(variable);
+                if (givenValues.containsKey(variable)) {
+                    filter = new ArrayList<>();
+                    filter.add(new Pair<>(variable, new String[]{givenValues.get(variable)}));
+                    varTable = varTable.filter(filter);
+                    result = result.multiply(varTable);
+                } else if (!variable.equals(queryVar)) {
+                    result = result.multiply(varTable).marginalize(variable);
+                } else {
+                    result = result.multiply(varTable);
+                }
             }
         }
 
