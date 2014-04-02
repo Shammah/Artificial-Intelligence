@@ -4,11 +4,14 @@ import bayesiannetwork43.ProbabilityTable.Row;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.text.DecimalFormatSymbols;
+import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
@@ -26,7 +29,7 @@ public class BayesianNetwork43 {
     private String queryVar;
     private Map<String, String> givenValues = new HashMap<>();
 
-    private final static String FILE = "alarm.txt";//"spiegelhalter.txt";
+    private final static String FILE = "spiegelhalter.txt";//"spiegelhalter.txt";
 
     /**
      * @param args the command line arguments
@@ -70,27 +73,27 @@ public class BayesianNetwork43 {
             }
         }
     }
-    
+
     public ProbabilityTable eliminate() {
         Set<String>  relevantVariables      = findRelevantVariables();
         List<String> topologicalVariables   = topologicalSort();
-  
+
         Iterator<String> iter               = topologicalVariables.iterator();
         ProbabilityTable result             = getTable(iter.next());
-        
+
         List<Pair<String, String[]>> filter = new ArrayList<>();
         String filterValue                  = givenValues.get(result.getName());
         if (filterValue != null) {
             filter.add(new Pair<>(result.getName(), new String[] { filterValue }));
             result                              = result.filter(filter);
         }
-        
+
         while (iter.hasNext()) {
             String variable = iter.next();
             if (!relevantVariables.contains(variable)) {
                 continue;
             }
-            
+
             // Are we fixed or free?
             ProbabilityTable varTable = getTable(variable);
             if (givenValues.containsKey(variable)) {
@@ -104,15 +107,15 @@ public class BayesianNetwork43 {
                 result = result.multiply(varTable);
             }
         }
-        
+
         return result.normalize();
     }
-    
+
     public List<String> topologicalSort() {
         List<String> result = new ArrayList<>();
         Set<String> variables = new HashSet<>(getVariables());
         Set<String> leaves;
-        
+
         while (! variables.isEmpty()) {
             leaves = findLeaves(variables);
             Set<String> toRemove = new HashSet<>();
@@ -135,7 +138,7 @@ public class BayesianNetwork43 {
     public Set<String> findLeaves(Set<String> variables) {
         variables = new HashSet(variables);
         Set<String> parents = new HashSet();
-        
+
         for (String variable : variables) {
            for (ProbabilityTable table : _tables) {
                if (table.getName().equals(variable)) {
@@ -145,7 +148,7 @@ public class BayesianNetwork43 {
                }
            }
         }
-        
+
         variables.removeAll(parents);
         return variables;
     }
@@ -186,23 +189,23 @@ public class BayesianNetwork43 {
      */
     public List<String> getVariables() {
         List<String> variables = new ArrayList<>();
-        
+
         for (ProbabilityTable table : _tables) {
             variables.add(table.getName());
         }
-        
+
         return variables;
     }
-    
+
     public Set<String> findRelevantVariables() {
         Set<String> relevantVars = new HashSet<>();
         relevantVars.add(queryVar);
-        
+
         // Add all variables from the given set.
         for (String variable : givenValues.keySet()) {
             relevantVars.add(variable);
         }
-        
+
         List<String> currentNodes = new ArrayList<>(relevantVars);
         List<String> futureNodes = new ArrayList<>();
         while (! currentNodes.isEmpty()) {
@@ -232,12 +235,15 @@ public class BayesianNetwork43 {
 
     public void writeOutput(ProbabilityTable probs) {
         String output = "(";
-        DecimalFormat format = new DecimalFormat("#.####");
-        
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.ENGLISH);
+        symbols.setDecimalSeparator('.');
+        DecimalFormat format = new DecimalFormat("#.####", symbols);
+
+        System.out.println(probs);
         for (Row row : probs.getRows()) {
             output += format.format(row.second.getValue()) + ", ";
         }
-        
+        output = output.substring(0, output.length() - 2);
         output += ")";
         System.out.println(output);
     }
