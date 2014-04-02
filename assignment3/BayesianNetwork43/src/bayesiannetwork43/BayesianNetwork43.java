@@ -3,6 +3,7 @@ package bayesiannetwork43;
 import bayesiannetwork43.ProbabilityTable.Row;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.StringReader;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.text.NumberFormat;
@@ -44,7 +45,9 @@ public class BayesianNetwork43 {
         } catch (IOException ex) {
             Logger.getLogger(BayesianNetwork43.class.getName()).log(Level.SEVERE, null, ex);
         }
-        bn.readQuery(null);
+        Scanner scanner = new Scanner(System.in);
+        String input = scanner.nextLine();
+        bn.readQuery(input);
         ProbabilityTable output = bn.eliminate();
         bn.writeOutput(output);
     }
@@ -63,7 +66,7 @@ public class BayesianNetwork43 {
         while (!stop) {
             String variable = scanner.next();
             if (! (variable.equals(")"))) { //end of query
-                variable = variable.replace('=',' ');
+                variable = variable.replaceFirst("=", " ");
                 String[] parts = variable.split("\\s+"); // split on space
                 variable = parts[0];
                 String value = parts[1].replaceAll(",", "");
@@ -239,10 +242,8 @@ public class BayesianNetwork43 {
     public void writeOutput(ProbabilityTable probs) {
         String output = "(";
         DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.ENGLISH);
-        symbols.setDecimalSeparator('.');
         DecimalFormat format = new DecimalFormat("#.####", symbols);
 
-        System.out.println(probs);
         for (Row row : probs.getRows()) {
             output += format.format(row.second.getValue()) + ", ";
         }

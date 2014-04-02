@@ -214,18 +214,18 @@ public class ProbabilityTable {
 
         return -1;
     }
-    
+
     /**
      * Maps each header to an index.
      * @return a mapping between headers and column indices.
      */
     public Map<String, Integer> getColumnMapping() {
         Map<String, Integer> mapping = new HashMap();
-        
+
         for (String header : getHeaders()) {
             mapping.put(header, getColumnIndex(header));
         }
-        
+
         return mapping;
     }
 
@@ -257,7 +257,7 @@ public class ProbabilityTable {
                 continue;
             }
 
-            // Remove all unnessecary whitespace.
+            // Remove all unnecessary whitespace.
             String[] columns = line.replaceAll("\\s+", " ").trim().split(" ");
 
             // Create a new table and set the headers
@@ -427,19 +427,19 @@ public class ProbabilityTable {
 
         return table;
     }
-    
+
     public ProbabilityTable normalize() {
         double sum                          = sumOfProbabilities();
         ProbabilityTable normalizedTable    = new ProbabilityTable();
         normalizedTable._headers            = getHeaders();
-        
+
         for (Row row : getRows()) {
             Row normalizedRow               = new Row();
             normalizedRow.first             = row.first;
             normalizedRow.second            = new Probability(row.second.getValue() / sum);
             normalizedTable.addRow(normalizedRow);
         }
-        
+
         return normalizedTable;
     }
 
@@ -471,22 +471,22 @@ public class ProbabilityTable {
 
     /**
      * Merges the rows of two tables with common headers.
-     * 
+     *
      * This is in fact the actual (natural-join) multiplication of tables.
-     * 
+     *
      * @param t2 The table to multiplicate with.
      * @return A new multiplied table.
      */
-    public ProbabilityTable multiply(ProbabilityTable t2) {       
+    public ProbabilityTable multiply(ProbabilityTable t2) {
         // Find indices for all common headers for each table.
         List<String> commonHeaders      = getCommonHeaders(t2);
         Map<String, Integer> r1Indices  = getColumnMapping();
         Map<String, Integer> r2Indices  = t2.getColumnMapping();
-        
+
         // Our merged table will contain the merged headers.
         ProbabilityTable mergedTable    = new ProbabilityTable();
         mergedTable._headers            = mergeHeaders(t2.getHeaders());
-        
+
         // Try to merge all rows from t1 with all rows of t2.
         // This is the slow and naive way, not an optimal way of computing.
         List<Row> t = t2.getRows();
@@ -502,12 +502,12 @@ public class ProbabilityTable {
                         break;
                     }
                 }
-                
+
                 // Get out of here if we dont want to merge the rows.
                 if(!shouldMerge) {
                     continue;
                 }
-                                    
+
                 // All headers in the row now share the same values.
                 // This will now form a new row with multiplied probabilities.
                 Row mergedRow = new Row();
@@ -521,14 +521,14 @@ public class ProbabilityTable {
                         values.add(r2Value);
                     }
                 }
-                    
+
                 // Add the merged row to the table.
                 mergedRow.first     = values;
                 mergedRow.second    = r1.second.times(r2.second);
                 mergedTable.addRow(mergedRow);
             }
         }
-        
+
         return mergedTable;
     }
 
@@ -539,14 +539,14 @@ public class ProbabilityTable {
      */
     public List<String> mergeHeaders(List<String> headers) {
         List<String> mergedHeaders = new ArrayList<>(getHeaders());
-        
+
         // Add the headers of the other table if they are not yet present.
         for (String header : headers) {
             if (!mergedHeaders.contains(header)) {
                 mergedHeaders.add(header);
             }
         }
-        
+
         return mergedHeaders;
     }
 
@@ -559,13 +559,13 @@ public class ProbabilityTable {
      */
     public List<String> getCommonHeaders(ProbabilityTable factor) {
         List<String> commonVars = new ArrayList<>();
-        
+
         for (String header : getHeaders()) {
             if (factor.getHeaders().contains(header)) {
                 commonVars.add(header);
             }
         }
-        
+
         return commonVars;
     }
 
@@ -576,29 +576,29 @@ public class ProbabilityTable {
     public List<String> getParents() {
         return this._headers.subList(1,_headers.size());
     }
-    
+
     /**
      * Returns the probability if the first row if present.
      * @return the probability of the first row, null if there are no rows.
      */
     public Probability getProbability() {
         List<Row> rows = getRows();
-        
+
         if (rows.isEmpty()) {
             return null;
         } else {
             return rows.iterator().next().second;
         }
     }
-    
+
     @Override
     public String toString() {
         String output = getHeaders().toString() + "\n";
-        
+
         for (Row row : getRows()) {
             output += row.toString() + "\n";
         }
-        
+
         return output;
     }
 }
