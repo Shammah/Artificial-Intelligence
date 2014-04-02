@@ -29,7 +29,7 @@ public class BayesianNetwork43 {
     private String queryVar;
     private Map<String, String> givenValues = new HashMap<>();
 
-    private final static String FILE = "spiegelhalter.txt";//"spiegelhalter.txt";
+    private final static String FILE = "alarm.txt";//"spiegelhalter.txt";
 
     /**
      * @param args the command line arguments

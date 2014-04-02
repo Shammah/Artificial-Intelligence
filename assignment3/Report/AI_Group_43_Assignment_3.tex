@@ -1,0 +1,95 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[latin1]{inputenc}
+\usepackage{a4wide, graphicx, clrscode3e, parskip}
+\author{J.P.H. Snoeren (0772658) \and R. Stoof (0767157)}
+\date{\today}
+\title{2IDC0 Artificial Intelligence: Bayesian Networks}
+\begin{document}
+\maketitle
+\textbf{This report describes how we implemented the variable elimination algorithm to find probability distributions of certain variables in a Bayesian network, given a number of conditions. First we describe how the implementation of the variable elimination algorithm is structured and discuss the components of this implementation. Then we take a closer look at the operations that we perform on the dataset while executing the variable elimination algorithm. When the concept of the variable elimination is clear, we discuss the results of our implementation, compared with some results of the PIT system.} 
+
+\section{Algorithms}
+\subsection{Overview}
+To find the probability distribution of a certain variable in a Bayesian network, we execute the variable elimination algorithm. The variables elimination algorithm uses the dynamic programming paradigm to reduce work being done multiple times. To execute the variable elimination algorithm we have to evaluate an expression based on the query and the Bayesian network. For each of the variables included in the query (that is, the query variable and the variables in the conditions), the parents and ancestors in the Bayesian network should be included in this expression, since they influence these variables. All vertices that are no parents or ancestors of any of these variables are \emph{not relevant} and thus should not be included in our query. In this way, we reduce the computation time. Our first step will be to find only the \emph{relevant} variables in the network. Then, we use a reversed topological sort to find an order in the Bayesian network in which we evaluate the expression. Once we have found this expression, we evaluate it by multiplying and marginalizing the conditional probability tables (CPTs) corresponding to the variables in the order. Then we finally return the result.
+\subsection{Finding the relevant variables}
+We can find the relevant variables in a Bayesian network starting with a certain set of variables by using a bottom-up breadth-first search. The parents of each variable are relevant, so we can add these to the set of relevant variables. But the parents of these parents are also relevant, so we add these as well. We continue to traverse the Bayesian network in this fashion until all vertices that we found are roots (and thus have no parents). These roots correspond to the a priori probabilities in the Bayesian network, which do not depend on any other variables. 
+
+Algorithm \textsc{FindRelevantVeriables} finds the relevant variables in a Bayesian network. Its input is the query variable $queryVar$, the variables in the conditions $givenVars$ and the Bayesian network $network$. It maintains a set $R$ which contains the relevant variables, and uses an auxiliary set $H$ that contains the variables corresponding to the vertices on the level that we are inspecting at the moment.
+
+\begin{codebox}
+\Procname{$\proc{findRelevantVariables}(queryVar, givenVars, network)$}
+\li Add \id{queryVar} and all variables in \id{givenVars} to \id{R}.
+\li Let \id{H} be a new set, containing initially the variables in \id{R}.
+\li \While \id{H} is not empty 
+\li	\Do
+		\For all vertices \id{v} in \id{H} 
+\li \Do
+			add the parents of \id{v} both to \id{R} and to \id{H}.
+\li			remove \id{v} from \id{H}
+		\End
+	\End
+\li \Return \id{R}
+\end{codebox}
+
+First we add all variables that are present in the query to $R$, since these are trivially relevant. The loop in lines 4 - 6 corresponds to adding the parents of all variables in $H$ to $R$, since these are relevant as well. In line 5 we add the parents to $H$, such that we inspect the ancestors of the original vertex as well. Note that the implementation of this algorithm includes some details, including a solution to adding variables to $H$ while looping over $H$.
+
+\subsection{Topological sort}
+The next step towards finding the correct expression to answer our query is to use a reversed topological sort on the Bayesian network. That is, we start at the leaves and add them to a list. Then we find the parents of these leaves and add them to the list, after the leaves. We can use topological sort on the Bayesian network since it is a directed acyclic graph. We call this algorithm reversed topological sort since we treat the Bayesian network as if all edges are reversed. 
+
+Algorithm \textsc{ReversedTopologicalSort} returns a list of variables which contains all variables in the Bayesian network $bn$ (not only the relevant variables). Its sole input is the Bayesian network $bn$. 
+
+\begin{codebox}
+\Procname{$\proc{ReversedToplogicalSort}(bn)$}
+\li Let \id{L} be a new list
+\li Let \id{V} be the set of variables in \id{bn}
+\li \While V is not empty \Do 
+\li		add all leaves of \id{bn} using only variables in \id{V} to \id{L}
+\li		remove all leaves of \id{bn} from \id{V}
+	\End
+\li \Return \id{L}
+\end{codebox}
+
+The algorithm works as follows. Initially we let $L$, our output list be empty and let $V$ be the set of all variables in the Bayesian network. We add all leaves of the network to $L$ (in any order) and then remove these leaves from the network. The next iteration finds the leaves of the network without the vertices in $L$, that is, the parents of the original leaves. Continuing in this fashion leads to an ordering in which parents of vertices always appear later than the vertices themselves.
+
+\subsection{Finding the leaves}
+Algorithm \textsc{ReversedToplogicalSort} depends heavily on finding the leaves in the Bayesian network, but we have not specified how to find these leaves. We can find the leaves easily, since the leaves are the only vertices that have no children. However, in our implementation we do not store the children of each vertex. Therefore we find the leaves by exploiting the following simple observation: The only vertices in the Bayesian network that are not parents of another vertex, are the leaves. 
+
+Algorithm \textsc{FindLeaves} finds the leaves in a Bayesian network. Its inputs are the Bayesian network $bn$ and a set of variables $V$ that specifies the vertices that we need to look at. All variables that are in the Bayesian network, but not in $V$ are not considered.
+
+\begin{codebox}
+\Procname{$\proc{FindLeaves}(bn, V)$}
+\li Let \id{Parents} be a new set
+\li \For all variables $var \in V$ \Do 
+\li	add all parents of \id{var} to \id{Parents}
+\End
+\li \Return \id{V} $\setminus$ \id{Parents}
+\end{codebox}
+
+The algorithm is conceptually very simple. We store all parents that we can find in the set $Parents$. We check for each variable what the parents are and add them to $Parents$. Then we simply return the set of all variables minus the parents, which results in the leaves as observed above.
+
+\subsection{Evaluating the formula}
+Now we have all tools from the previous subsections in hand, we can construct the formula which will give the probability distribution asked in the query. This formula consists of certain factors. A factor is represented by a CPT, possibly reduced by applying a particular \emph{filter} over that CPT. A filter is a condition on a variable present in the CPT. For example, in the burglary example a CPT may consist of the variables \emph{Alarm}, \emph{Burglary} and \emph{Earthquake} and a possible filter is \emph{Earthquake} $=$ \emph{yes}. The result will be a new CPT where all rows where \emph{Earthquake} $=$ \emph{no} are removed.
+
++ pseudocode
+
+\subsection{Operations on factors}
+\subsubsection{Multiply}
++ pseudocode
+\subsubsection{Marginalize}
++ pseudocode
+\section{Results}
+Describe the results of our implementation and the PIT system on the burglary network, and the results on the BirthAsphyxia.
+
+\section{Contributions}
+Blabla.
+\section{Manual}
+In this section, we give a short manual on how to reproduce the results of the project. 
+
+\begin{enumerate}
+\item 
+\item 
+\item 
+\item 
+\item 
+\end{enumerate}
+\end{document}
