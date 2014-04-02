@@ -244,8 +244,9 @@ public class BayesianNetwork43 {
         DecimalFormatSymbols symbols = new DecimalFormatSymbols(Locale.ENGLISH);
         DecimalFormat format = new DecimalFormat("#.####", symbols);
 
+        int columnIndex = probs.getColumnIndex(queryVar);
         for (Row row : probs.getRows()) {
-            output += format.format(row.second.getValue()) + ", ";
+            output += row.first.get(columnIndex) + " = " + format.format(row.second.getValue()) + ", ";
         }
         output = output.substring(0, output.length() - 2);
         output += ")";
