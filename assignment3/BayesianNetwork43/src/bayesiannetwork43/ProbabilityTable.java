@@ -358,6 +358,11 @@ public class ProbabilityTable {
         return table;
     }
 
+    /**
+     * Returns the sum of the probabilities in {@code this} table.
+     *
+     * @return the sum of the probabilities in {@code this} table.
+     */
     public double sumOfProbabilities() {
         double sum = 0.0;
 
@@ -428,6 +433,12 @@ public class ProbabilityTable {
         return table;
     }
 
+    /**
+     * Normalizes {@code this} such that all probabilities sum up to one.
+     * We normalize by simply dividing by the sum of the probabilities.
+     * @return a {@code ProbabilityTable} which is the same as {@code this},
+     * except that the probabilities are normalized
+     */
     public ProbabilityTable normalize() {
         double sum                          = sumOfProbabilities();
         ProbabilityTable normalizedTable    = new ProbabilityTable();

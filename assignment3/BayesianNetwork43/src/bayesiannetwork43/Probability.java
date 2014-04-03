@@ -90,6 +90,11 @@ public class Probability {
         return "" + getValue();
     }
 
+    /**
+     * Returns {@code this} probability times {@code prob}.
+     * @param prob the {@code Probability} to be multiplied with
+     * @return a {@code Probability} with value {@code this._value * prob._value}
+     */
     public Probability times(Probability prob) {
         return new Probability(prob._value * this._value);
     }
