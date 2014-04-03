@@ -142,7 +142,7 @@ The multiplication of two probability-tables, or \emph{factors}, is one of the m
 \Procname{$\proc{multiple}(t1, t2)$}
 \li $commonHeaders = t1.headers \cap t2.headers$
 \li $mergedTable \gets $ \textbf{new} ProbabilityTable
-\li $mergedTable.headers \gets commonHeaders$
+\li $mergedTable.headers \gets t1.headers \cup t2.headers$
 \zi
 \li \For each $r1 \in t1.rows$ \Comment Each row in the first table. \Do
 \li     \For each $r2 \in t2.rows$ \Comment Gets compared to all other rows in the other table. \Do
