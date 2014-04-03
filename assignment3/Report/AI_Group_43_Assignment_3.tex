@@ -8,9 +8,9 @@
 \maketitle
 \textbf{This report describes how we implemented the variable elimination algorithm to find probability distributions of certain variables in a Bayesian network, given a number of conditions. First we describe how the implementation of the variable elimination algorithm is structured and discuss the components of this implementation. Then we take a closer look at the operations that we perform on the dataset while executing the variable elimination algorithm. When the concept of our implementation of the variable elimination is clear, we discuss the results of our implementation, compared with the results of the PIT system.} 
 
-\section{Algorithms}
+\section{Variable Elimination}
 \subsection{Overview}
-To find the probability distribution of a certain variable in a Bayesian network, we execute the variable elimination algorithm. The variables elimination algorithm uses the dynamic programming paradigm to reduce work being done multiple times. To execute the variable elimination algorithm we have to evaluate an expression based on the query and the Bayesian network. For each of the variables included in the query (that is, the query variable and the variables in the conditions), the parents and ancestors in the Bayesian network should be included in this expression, since they influence these variables. All vertices that are no parents or ancestors of any of these variables are \emph{not relevant} and thus should not be included in our query. In this way, we reduce the computation time. Our first step will be to find only the \emph{relevant} variables in the network. Then, we use a reversed topological sort to find an order in the Bayesian network in which we evaluate the expression. Once we have found this expression, we evaluate it by multiplying and marginalizing the conditional probability tables (CPTs) corresponding to the variables in the order. Then we finally return the result.
+To find the probability distribution of a certain variable in a Bayesian network, we execute the variable elimination algorithm. The variables elimination algorithm uses the dynamic programming paradigm to reduce work being done multiple times. To execute the variable elimination algorithm we have to evaluate an expression based on the query and the Bayesian network. For each of the variables included in the query (that is, the query variable and the variables in the conditions), the parents and ancestors in the Bayesian network should be included in this expression, since they influence these variables. All vertices that are no parents or ancestors of any of these variables are \emph{not relevant} and thus should not be included in our query. In this way, we reduce the computation time. Our first step will be to find only the \emph{relevant} variables in the network. Then, we use a reversed topological sort to find an order in the Bayesian network in which we evaluate the expression. Once we have found this expression, we evaluate it by multiplying and marginalizing the conditional probability tables (CPTs) corresponding to the variables in the order. Then we finally return the normalized result.
 \subsection{Finding the relevant variables}
 We can find the relevant variables in a Bayesian network starting with a certain set of variables by using a bottom-up breadth-first search. The parents of each variable are relevant, so we can add these to the set of relevant variables. But the parents of these parents are also relevant, so we add these as well. We continue to traverse the Bayesian network in this fashion until all vertices that we found are roots (and thus have no parents). These roots correspond to the a priori probabilities in the Bayesian network, which do not depend on any other variables. 
 
@@ -76,24 +76,24 @@ Now we have all tools from the previous subsections in hand, we can construct th
 \li	Let \id{factor} be a new factor representing the factor of \id{var}
 \li		\If $\id{var} \in \id{givenVars}$ \Then
 \li			 \id{factor} $\gets$ \textsc{Filter}(\id{factor}, \id{var}$=$\id{var}.value) 
-\li			 \id{result} $\gets$ \textsc{Multiply}(\id{factor}, \id{result})
+\li			 \id{result} $\gets$ \textsc{Multiply}(\id{result}, \id{factor})
 		\End
 \li	\Else \If \id{var} $\neq$ \id{queryVar} \Then
-\li		\id{result} $\gets$ \textsc{Multiply}(\id{factor}, \id{result})
-\li		\id{result} $\gets$ \textsc{Eliminate}(\id{result})
-\li	\Else 
 \li		\id{result} $\gets$ \textsc{Multiply}(\id{result}, \id{factor})
+\li		\id{result} $\gets$ \textsc{Marginalize}(\id{result, \id{var}})
+\li	\Else 
+\li		\id{result} $\gets$ \textsc{Multiply}(\id{result}, \id{result})
 	\End
 	\End
 \End
 \zi
 \li \Return \textsc{Normalize}(\id{result})
 \end{codebox}
-To find the probability distribution based on the query, we have to multiply and marginalize certain factors. We treat the CPTs in the topologically sorted order that \textsc{ReversedTopologicalSort} provides us. We initialize our result factor by the first \emph{relevant} variable that appears in the topologically sorted order and filter it if needed. If we encounter a variable which is irrelevant, we will skip it. Note that this does not change the probability required, but it improves computation time slightly. For each next relevant variable, we check whether it is fixed or free. If it is fixed, we multiply the factor with the current factor, where we only use the rows where the variables are in common. This is also referred to as pointwise multiplication. If the variable is free, we multiply the whole factor and then eliminate (or sum out) the variable. In the case of our variable being the query variable, we do not eliminate the variable (since we would not get a result otherwise), but only multiply without filtering first. We return the result, normalized by dividing by the sum of the probabilities.
+To find the probability distribution based on the query, we have to multiply and marginalize certain factors. We treat the CPTs in the topologically sorted order that \textsc{ReversedTopologicalSort} provides us. We initialize our result factor by the first \emph{relevant} variable that appears in the topologically sorted order and filter it if needed. If we encounter a variable which is irrelevant, we will skip it. Note that this does not change the probability required, but it improves computation time slightly. For each next relevant variable, we check whether it is fixed or free. If it is fixed, we multiply the factor with the current factor, where we only use the rows where the variables are in common. This is also referred to as pointwise multiplication. If the variable is free, we multiply the whole factor and then marginalize (or sum out) the variable. In the case of our variable being the query variable, we do not eliminate the variable (since we would not get a result otherwise), but only multiply without filtering first. We return the result, normalized by dividing by the sum of the probabilities.
 
 In our implementation, instead of returning a tuple which contains the probabilities of the values in the order that they appear in the data set, we return them in arbitrary order with their labels, which is more informative. For example, suppose we ask P( Burglary $|$ Mary=yes, John=yes). Instead of returning the very uninformative output (0.284, 0.716) we return either (yes = 0.284, no = 0.716) or (no = 0.716, yes = 0.284).
-\subsection{Operations on factors}
-\subsubsection{Filtering}
+\section{Probability Table / Factor operations}
+\subsection{Filtering}
 When given a probability table, we might be only interested in the rows that satisfy a certain condition. For example, we have the probability table P(A, B, C), but we are actually interested in the table P(A $|$ B = "foo" $\vee$ B = "bar" $\wedge$ C = "Cloudy"). For that, we define the \textsc{filter} method, which removes all rows from a probability-table that do not satisfy the given constraints. The method takes as input a table, as well as a map with conditions. The key of the map indicates for which variable the constraint holds, and the item at that key is a list of possible values that variable can contain. For example, in our example table that we are interested in, it would hold that $conditions[B] = [ "foo", "bar" ]$. This method will return a new and filtered probability-table.
 \begin{codebox}
 \Procname{$\proc{filter}(table, conditions)$}
@@ -120,7 +120,7 @@ When given a probability table, we might be only interested in the rows that sat
 \zi
 \li \Return $newTable$
 \end{codebox}
-\subsubsection{Marginalization}
+\subsection{Marginalization}
 If we have the probability-table for P(A, B), we might want to marginalize out B such that we get the probability table P(A). This can be easily done by the method showed down below. Basically all that we have to do, is create a new table, and copy every row from the original table into the new table, excluding the data of the column that we want to exclude. Because of out implementation of the probability-table, any duplicate row that gets added to the probability table will be 'merged' with the existing table by adding the probabilities. That is, if there is a row $$(["Foo", "Bar"], 0.5)$$ and we add the row $$(["Foo", "Bar"], 0.1)$$ this will result in the final and single row $$(["Foo", "Bar"], 0.6)$$ As such, the method, which is called \textsc{marginalize} takes a table as input, as well as a header to marginalize, and will output a new table with the given header marginalized out.
 \begin{codebox}
 \Procname{$\proc{marginalize}(table, header)$}
@@ -136,7 +136,7 @@ If we have the probability-table for P(A, B), we might want to marginalize out B
 \zi
 \li \Return $newTable$
 \end{codebox}
-\subsubsection{Pointwise multiplication}
+\subsection{Pointwise multiplication}
 The multiplication of two probability-tables, or \emph{factors}, is one of the most important operations for the variable elimination algorithm. In short, it works a bit like a natural join. You look at the common headers of both table A and table B, and when two rows have the same values for their common headers, you can merge the two rows into a single new row with their probabilities multiplied. The method \textsc{multiply} therefore takes as argument two tables, and returns a new \emph{multiplied} table.
 \begin{codebox}
 \Procname{$\proc{multiple}(t1, t2)$}
@@ -159,7 +159,7 @@ The multiplication of two probability-tables, or \emph{factors}, is one of the m
 \zi
 \li \Return $mergedTable$
 \end{codebox}
-\subsubsection{Normalize}
+\subsection{Normalize}
 Normalization is the final step of our algorithm, and is there to guarantee that all probabilities in a probability-table sum up to $1$. Therefore, the method \textsc{normalize} is fairly straight forward, as it takes a table as input and then divides all probabilities by the sum of probabilities. This method will return a new normalized table.
 \begin{codebox}
 \Procname{$\proc{normalize}(table)$}
@@ -193,7 +193,7 @@ P( Alarm=yes $|$ Earthquake=yes ) & 0.2907 & 0.2903 \\
 P( John=yes $|$ Earthquake=yes, Burglary=yes ) & 0.8575 & 0.8575 \\ 
 \hline 
 \end{tabular} 
-\caption{Results of queries on the burglary Bayesian network using our implementation and the PIT system}
+\caption{Results of queries on the burglary network using our implementation and the PIT system}
 \label{tableburglary}
 \end{table}
 We can see that the probability seems correct. The small variations in the probabilities are due to rounding the values. Next, we use our implementation to answer some queries for the \emph{BirthAsphyxia} network. The results for some example queries can be found in the query execution down below.
