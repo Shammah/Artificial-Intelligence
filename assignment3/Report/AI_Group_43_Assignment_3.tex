@@ -103,8 +103,31 @@ To find the probability distribution based on the query, we have to multiply and
 In our implementation, instead of returning a tuple which contains the probabilities of the values in the order that they appear in the data set, we return them in arbitrary order with their labels, which is more informative. For example, suppose we ask P( Burglary $|$ Mary=yes, John=yes). Instead of returning the very uninformative output (0.284, 0.716) we return either (yes = 0.284, no = 0.716) or (no = 0.716, yes = 0.284).
 
 \subsection{Operations on factors}
+\subsubsection{Filtering}
+When given a probability table, we might be only interested in the rows that satisfy a certain condition. For example, we have the probability table P(A, B, C), but we are actually interested in the table P(A $|$ B = "foo" $\vee$ B = "bar" $\wedge$ C = "Cloudy"). For that, we define the {\sc filter} method, which removes all rows from a probability-table that do not satisfy the given constraints. The method takes as input a table, as well as a map with conditions. The key of the map indicates for which variable the constraint holds, and the item at that key is a list of possible values that variable can contain. For example, in our example table that we are interested in, it would hold that $conditions[B] = [ "foo", "bar" ]$. This method will return a new and filtered probability-table.
+\begin{codebox}
+\Procname{$\proc{filter}(table, conditions)$}
+\li $newTable \gets ProbabilityTable$
+\li $newTable.headers \gets table.headers$ \Comment Copy Headers.
+\li \For $row \in table.rows$ \Comment Check for every row whether it satisfies the conditions. \Do
+\li     $meetsAllConditions \gets true$
+\li     \For $variable \in conditions.variables$ \Comment We check for all variables in the conditions. \Do
+\li         $containsValue \gets false$ \Comment The row contains a variable with a certain value.
+\li         \For $value \in variable.values$ \Comment We check for any value for the variable. \Do
+\li             \If $row[variable] == value$ \Comment The row's variable satisfies the constraint. \Then
+\li                 $containsValue \gets true$
+\li                 \textbf{break}
+                \End
+            \End
+\li         $meetsAllConditions = meetsAllConditions$ \textbf{and} $containsValue$
+        \End
+\li     \If $meetsAllConditions$ \Comment If all conditions are met, we dont filter the row out. \Then
+\li         $newTable$.addRow($row$)
+        \End
+    \End
+\li \Return $newTable$
+\end{codebox}
 \subsubsection{Pointwise multiplication}
-+ pseudocode of filter?
 + pseudocode of multiply
 \subsubsection{Elimination}
 + pseudocode
