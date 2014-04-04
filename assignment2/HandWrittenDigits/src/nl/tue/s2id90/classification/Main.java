@@ -40,7 +40,7 @@ public class Main {
     private final static int NRTREES = 5;
 
     public static void main(String[] a) {
-        randomForestDigits();
+        treeDigits();
     }
 
     public static void golf() {
@@ -70,6 +70,8 @@ public class Main {
         DecisionTree43<ImageFeatures<Double>, Byte> tree;
         System.out.println("building tree");
         tree = new DecisionTree43<>(trainingData);
+        System.out.println("prune");
+        tree.prune(testData);
         System.out.println("classifying");
         new ConfusionMatrixPanel(testData, tree.getConfusionMatrix(testDataset)).showIt();
     }

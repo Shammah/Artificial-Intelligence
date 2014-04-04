@@ -246,9 +246,20 @@ public class DecisionTree43<F extends Features, L> extends DecisionTree<F, L> {
         return ((double) wrong) / ((double) testData.size());
     }
 
+    /**
+     * Prune the tree to see whether the error rate decreases.
+     *
+     * @param testData the test data used to generalize (that is, prune) {@code this} tree.
+     * @modifies {@code this}
+     * @post the tree is pruned in such a way that the error rate on {@code testData}
+     * is minimized.
+     * @return the number of vertices removed from {@code this}
+     * @see LabeledTree.depthFirstPostOrderVisit()
+     */
     @Override
     public int prune(final LabeledDataset2<F, L> testData) {
-        // use visitor!?
-        throw new UnsupportedOperationException("Needs to be implemented");
+        Visitor43<F,L> visitor = new Visitor43<>(this, testData);
+        depthFirstPostOrderVisit(visitor);
+        return visitor.getNumberPruned();
     }
 }

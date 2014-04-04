@@ -1,7 +1,6 @@
 package nl.tue.s2id90.classification.data;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -141,11 +140,11 @@ public class LabeledDataset2<V extends Features, L> extends LabeledDataset<V, L>
         if (!smallerEqual.isEmpty()) {
             result.put("<= " + splitValue.doubleValue(), smallerEqual);
         }
-        
+
         if (!bigger.isEmpty()) {
             result.put("> " + splitValue.doubleValue(), bigger);
         }
-        
+
         return result;
     }
 
