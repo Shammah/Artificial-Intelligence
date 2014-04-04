@@ -8,14 +8,13 @@
 \maketitle
 \textbf{This report describes how we implemented the variable elimination algorithm to find probability distributions of certain variables in a Bayesian network, given a number of conditions. First we describe how the implementation of the variable elimination algorithm is structured and discuss the components of this implementation. Then we take a closer look at the operations that we perform on the dataset while executing the variable elimination algorithm. When the concept of our implementation of the variable elimination is clear, we discuss the results of our implementation, compared with the results of the PIT system.} 
 
-\section{Algorithms}
+\section{Variable Elimination}
 \subsection{Overview}
-To find the probability distribution of a certain variable in a Bayesian network, we execute the variable elimination algorithm. The variables elimination algorithm uses the dynamic programming paradigm to reduce work being done multiple times. To execute the variable elimination algorithm we have to evaluate an expression based on the query and the Bayesian network. For each of the variables included in the query (that is, the query variable and the variables in the conditions), the parents and ancestors in the Bayesian network should be included in this expression, since they influence these variables. All vertices that are no parents or ancestors of any of these variables are \emph{not relevant} and thus should not be included in our query. In this way, we reduce the computation time. Our first step will be to find only the \emph{relevant} variables in the network. Then, we use a reversed topological sort to find an order in the Bayesian network in which we evaluate the expression. Once we have found this expression, we evaluate it by multiplying and marginalizing the conditional probability tables (CPTs) corresponding to the variables in the order. Then we finally return the result.
+To find the probability distribution of a certain variable in a Bayesian network, we execute the variable elimination algorithm. The variables elimination algorithm uses the dynamic programming paradigm to reduce work being done multiple times. To execute the variable elimination algorithm we have to evaluate an expression based on the query and the Bayesian network. For each of the variables included in the query (that is, the query variable and the variables in the conditions), the parents and ancestors in the Bayesian network should be included in this expression, since they influence these variables. All vertices that are no parents or ancestors of any of these variables are \emph{not relevant} and thus should not be included in our query. In this way, we reduce the computation time. Our first step will be to find only the \emph{relevant} variables in the network. Then, we use a reversed topological sort to find an order in the Bayesian network in which we evaluate the expression. Once we have found this expression, we evaluate it by multiplying and marginalizing the conditional probability tables (CPTs) corresponding to the variables in the order. Then we finally return the normalized result.
 \subsection{Finding the relevant variables}
 We can find the relevant variables in a Bayesian network starting with a certain set of variables by using a bottom-up breadth-first search. The parents of each variable are relevant, so we can add these to the set of relevant variables. But the parents of these parents are also relevant, so we add these as well. We continue to traverse the Bayesian network in this fashion until all vertices that we found are roots (and thus have no parents). These roots correspond to the a priori probabilities in the Bayesian network, which do not depend on any other variables. 
 
 Algorithm \textsc{FindRelevantVeriables} finds the relevant variables in a Bayesian network. Its input is the query variable $queryVar$, the variables in the conditions $givenVars$ and the Bayesian network $network$. It maintains a set $R$ which contains the relevant variables, and uses an auxiliary set $H$ that contains the variables corresponding to the vertices on the level that we are inspecting at the moment.
-
 \begin{codebox}
 \Procname{$\proc{findRelevantVariables}(queryVar, givenVars, network)$}
 \li Add \id{queryVar} and all variables in \id{givenVars} to \id{R}.
@@ -30,14 +29,11 @@ Algorithm \textsc{FindRelevantVeriables} finds the relevant variables in a Bayes
 	\End
 \li \Return \id{R}
 \end{codebox}
-
 First we add all variables that are present in the query to $R$, since these are trivially relevant. The loop in lines 4 - 6 corresponds to adding the parents of all variables in $H$ to $R$, since these are relevant as well. In line 5 we add the parents to $H$, such that we inspect the ancestors of the original vertex as well. Note that the implementation of this algorithm includes some details, including a solution to adding variables to $H$ while looping over $H$.
-
 \subsection{Topological sort}
 The next step towards finding the correct expression to answer our query is to use a reversed topological sort on the Bayesian network. That is, we start at the leaves and add them to a list. Then we find the parents of these leaves and add them to the list, after the leaves. We can use topological sort on the Bayesian network since it is a directed acyclic graph. We call this algorithm reversed topological sort since we treat the Bayesian network as if all edges are reversed. 
 
 Algorithm \textsc{ReversedTopologicalSort} returns a list of variables which contains all variables in the Bayesian network $bn$ (not only the relevant variables). Its sole input is the Bayesian network $bn$. 
-
 \begin{codebox}
 \Procname{$\proc{ReversedTopologicalSort}(bn)$}
 \li Let \id{L} be a new list
@@ -48,14 +44,11 @@ Algorithm \textsc{ReversedTopologicalSort} returns a list of variables which con
 	\End
 \li \Return \id{L}
 \end{codebox}
-
 The algorithm works as follows. Initially we let $L$, our output list be empty and let $V$ be the set of all variables in the Bayesian network. We add all leaves of the network to $L$ (in any order) and then remove these leaves from the network. The next iteration finds the leaves of the network without the vertices in $L$, that is, the parents of the original leaves. Continuing in this fashion leads to an ordering in which parents of vertices always appear later than the vertices themselves.
-
 \subsection{Finding the leaves}
 Algorithm \textsc{ReversedToplogicalSort} depends heavily on finding the leaves in the Bayesian network, but we have not specified how to find these leaves. We can find the leaves easily, since the leaves are the only vertices that have no children. However, in our implementation we do not store the children of each vertex. Therefore we find the leaves by exploiting the following simple observation: The only vertices in the Bayesian network that are not parents of another vertex, are the leaves. 
 
 Algorithm \textsc{FindLeaves} finds the leaves in a Bayesian network. Its inputs are the Bayesian network $bn$ and a set of variables $V$ that specifies the vertices that we need to look at. All variables that are in the Bayesian network, but not in $V$ are not considered.
-
 \begin{codebox}
 \Procname{$\proc{FindLeaves}(bn, V)$}
 \li Let \id{Parents} be a new set
@@ -64,56 +57,54 @@ Algorithm \textsc{FindLeaves} finds the leaves in a Bayesian network. Its inputs
 \End
 \li \Return \id{V} $\setminus$ \id{Parents}
 \end{codebox}
-
 The algorithm is conceptually very simple. We store all parents that we can find in the set $Parents$. We check for each variable what the parents are and add them to $Parents$. Then we simply return the set of all variables minus the parents, which results in the leaves as observed above.
-
 \subsection{Evaluating the expression}
-Now we have all tools from the previous subsections in hand, we can construct the formula which will give the probability distribution asked in the query. This formula consists of certain factors. A factor is represented by a CPT, possibly reduced by applying a particular \emph{filter} over that CPT. A filter is a condition on a variable present in the CPT. For example, in the burglary example a CPT may consist of the variables \emph{Alarm}, \emph{Burglary} and \emph{Earthquake} and a possible filter is \emph{Earthquake} $=$ \emph{yes}. The result will be a new CPT where all rows where \emph{Earthquake} $=$ \emph{no} are removed.
-Algorithm \textsc{VariableElimination} finds the expression corresponding to the query and evaluates it.
-
+Now we have all tools from the previous subsections in hand, we can construct the formula which will give the probability distribution asked in the query. This formula consists of certain factors. A factor is represented by a CPT, possibly reduced by applying a particular \emph{filter} over that CPT. A filter is a condition on a variable present in the CPT. For example, in the burglary example a CPT may consist of the variables \emph{Alarm}, \emph{Burglary} and \emph{Earthquake} and a possible filter is \emph{Earthquake} $=$ \emph{yes}. The result will be a new CPT where all rows where \emph{Earthquake} $=$ \emph{no} are removed. Algorithm \textsc{VariableElimination} finds the expression corresponding to the query and evaluates it.
 \begin{codebox}
 \Procname{$\proc{VariableElimination}(bn, queryVar, givenVars)$}
 \li $R \gets $ \textsc{FindRelevantVariables}(\id{queryVar}, \id{givenVars}, \id{bn})
 \li $V \gets $ \textsc{ReversedTopologicalSort}(\id{bn})
 \li Let \id{result} be a new factor representing the result
 \li \id{result} $\gets$ the first variable \id{v} in $R$
+\zi
 \li \If \id{v} $\in \id{givenVars}$ \Then
 \li	\id{result} $\gets$ \textsc{Filter}(\id{result}, \id{v}$=$\id{v}.value)
 \End
+\zi
 \li \For all variables \id{var} $\in V \setminus \{v\}$ \Do 
 \li	\If $\id{var} \in R$ \Then
 \li	Let \id{factor} be a new factor representing the factor of \id{var}
 \li		\If $\id{var} \in \id{givenVars}$ \Then
 \li			 \id{factor} $\gets$ \textsc{Filter}(\id{factor}, \id{var}$=$\id{var}.value) 
-\li			 \id{result} $\gets$ \textsc{Multiply}(\id{factor}, \id{result})
+\li			 \id{result} $\gets$ \textsc{Multiply}(\id{result}, \id{factor})
 		\End
 \li	\Else \If \id{var} $\neq$ \id{queryVar} \Then
-\li		\id{result} $\gets$ \textsc{Multiply}(\id{factor}, \id{result})
-\li		\id{result} $\gets$ \textsc{Eliminate}(\id{result})
-\li	\Else 
 \li		\id{result} $\gets$ \textsc{Multiply}(\id{result}, \id{factor})
+\li		\id{result} $\gets$ \textsc{Marginalize}(\id{result, \id{var}})
+\li	\Else 
+\li		\id{result} $\gets$ \textsc{Multiply}(\id{result}, \id{result})
 	\End
 	\End
 \End
+\zi
 \li \Return \textsc{Normalize}(\id{result})
 \end{codebox}
-
-To find the probability distribution based on the query, we have to multiply and marginalize certain factors. We treat the CPTs in the topologically sorted order that \textsc{ReversedTopologicalSort} provides us. We initialize our result factor by the first \emph{relevant} variable that appears in the topologically sorted order and filter it if needed. If we encounter a variable which is irrelevant, we will skip it. Note that this does not change the probability required, but it improves computation time slightly. For each next relevant variable, we check whether it is fixed or free. If it is fixed, we multiply the factor with the current factor, where we only use the rows where the variables are in common. This is also referred to as pointwise multiplication. If the variable is free, we multiply the whole factor and then eliminate (or sum out) the variable. In the case of our variable being the query variable, we do not eliminate the variable (since we would not get a result otherwise), but only multiply without filtering first. We return the result, normalized by dividing by the sum of the probabilities.
+To find the probability distribution based on the query, we have to multiply and marginalize certain factors. We treat the CPTs in the topologically sorted order that \textsc{ReversedTopologicalSort} provides us. We initialize our result factor by the first \emph{relevant} variable that appears in the topologically sorted order and filter it if needed. If we encounter a variable which is irrelevant, we will skip it. Note that this does not change the probability required, but it improves computation time slightly. For each next relevant variable, we check whether it is fixed or free. If it is fixed, we multiply the factor with the current factor, where we only use the rows where the variables are in common. This is also referred to as pointwise multiplication. If the variable is free, we multiply the whole factor and then marginalize (or sum out) the variable. In the case of our variable being the query variable, we do not eliminate the variable (since we would not get a result otherwise), but only multiply without filtering first. We return the result, normalized by dividing by the sum of the probabilities.
 
 In our implementation, instead of returning a tuple which contains the probabilities of the values in the order that they appear in the data set, we return them in arbitrary order with their labels, which is more informative. For example, suppose we ask P( Burglary $|$ Mary=yes, John=yes). Instead of returning the very uninformative output (0.284, 0.716) we return either (yes = 0.284, no = 0.716) or (no = 0.716, yes = 0.284).
-
-\subsection{Operations on factors}
-\subsubsection{Filtering}
-When given a probability table, we might be only interested in the rows that satisfy a certain condition. For example, we have the probability table P(A, B, C), but we are actually interested in the table P(A $|$ B = "foo" $\vee$ B = "bar" $\wedge$ C = "Cloudy"). For that, we define the {\sc filter} method, which removes all rows from a probability-table that do not satisfy the given constraints. The method takes as input a table, as well as a map with conditions. The key of the map indicates for which variable the constraint holds, and the item at that key is a list of possible values that variable can contain. For example, in our example table that we are interested in, it would hold that $conditions[B] = [ "foo", "bar" ]$. This method will return a new and filtered probability-table.
+\section{Probability Table / Factor operations}
+\subsection{Filtering}
+When given a probability table, we might be only interested in the rows that satisfy a certain condition. For example, we have the probability table P(A, B, C), but we are actually interested in the table P(A $|$ B = "foo" $\vee$ B = "bar" $\wedge$ C = "Cloudy"). For that, we define the \textsc{filter} method, which removes all rows from a probability-table that do not satisfy the given constraints. The method takes as input a table, as well as a map with conditions. The key of the map indicates for which variable the constraint holds, and the item at that key is a list of possible values that variable can contain. For example, in our example table that we are interested in, it would hold that $conditions[B] = [ "foo", "bar" ]$. This method will return a new and filtered probability-table.
 \begin{codebox}
 \Procname{$\proc{filter}(table, conditions)$}
-\li $newTable \gets ProbabilityTable$
-\li $newTable.headers \gets table.headers$ \Comment Copy Headers.
-\li \For $row \in table.rows$ \Comment Check for every row whether it satisfies the conditions. \Do
+\li $newTable \gets $ \textbf{new} ProbabilityTable
+\li $newTable.headers \gets table.headers$ \Comment Copy all headers.
+\zi
+\li \For each $row \in table.rows$ \Comment Check for every row whether it satisfies the conditions. \Do
 \li     $meetsAllConditions \gets true$
-\li     \For $variable \in conditions.variables$ \Comment We check for all variables in the conditions. \Do
+\li     \For each $variable \in conditions.keys$ \Comment We check for all variables in the conditions. \Do
 \li         $containsValue \gets false$ \Comment The row contains a variable with a certain value.
-\li         \For $value \in variable.values$ \Comment We check for any value for the variable. \Do
+\li         \For each $value \in variable.values$ \Comment We check for any value for the variable. \Do
 \li             \If $row[variable] == value$ \Comment The row's variable satisfies the constraint. \Then
 \li                 $containsValue \gets true$
 \li                 \textbf{break}
@@ -121,16 +112,71 @@ When given a probability table, we might be only interested in the rows that sat
             \End
 \li         $meetsAllConditions = meetsAllConditions$ \textbf{and} $containsValue$
         \End
+\zi
 \li     \If $meetsAllConditions$ \Comment If all conditions are met, we dont filter the row out. \Then
-\li         $newTable$.addRow($row$)
+\li         $newTable$.{\sc addRow}($row$)
         \End
+    \End
+\zi
+\li \Return $newTable$
+\end{codebox}
+\subsection{Marginalization}
+If we have the probability-table for P(A, B), we might want to marginalize out B such that we get the probability table P(A). This can be easily done by the method showed down below. Basically all that we have to do, is create a new table, and copy every row from the original table into the new table, excluding the data of the column that we want to exclude. Because of out implementation of the probability-table, any duplicate row that gets added to the probability table will be 'merged' with the existing table by adding the probabilities. That is, if there is a row $$(["Foo", "Bar"], 0.5)$$ and we add the row $$(["Foo", "Bar"], 0.1)$$ this will result in the final and single row $$(["Foo", "Bar"], 0.6)$$ As such, the method, which is called \textsc{marginalize} takes a table as input, as well as a header to marginalize, and will output a new table with the given header marginalized out.
+\begin{codebox}
+\Procname{$\proc{marginalize}(table, header)$}
+\li $newTable \gets $ \textbf{new} ProbabilityTable
+\li $newTable.headers \gets table.headers \setminus \left\{ header \right\}$ \Comment Copy all headers, except $header$.
+\zi
+\li \For each $row \in table.rows$ \Comment Copy each row, and remove the data for $header$ \Do
+\li     $marginalizedRow \gets $ \textbf{new} Row
+\li     $marginalizedRow.probability \gets row.probability$
+\li     $marginalizedRow.values \gets row.values \setminus \left\{ row[header] \right\}$
+\li     $newTable$.{\sc addRow}($marginalizedRow$)
+    \End
+\zi
+\li \Return $newTable$
+\end{codebox}
+\subsection{Pointwise multiplication}
+The multiplication of two probability-tables, or \emph{factors}, is one of the most important operations for the variable elimination algorithm. In short, it works a bit like a natural join. You look at the common headers of both table A and table B, and when two rows have the same values for their common headers, you can merge the two rows into a single new row with their probabilities multiplied. The method \textsc{multiply} therefore takes as argument two tables, and returns a new \emph{multiplied} table.
+\begin{codebox}
+\Procname{$\proc{multiple}(t1, t2)$}
+\li $commonHeaders = t1.headers \cap t2.headers$
+\li $mergedTable \gets $ \textbf{new} ProbabilityTable
+\li $mergedTable.headers \gets t1.headers \cup t2.headers$
+\zi
+\li \For each $r1 \in t1.rows$ \Comment Each row in the first table. \Do
+\li     \For each $r2 \in t2.rows$ \Comment Gets compared to all other rows in the other table. \Do
+\zi         \Comment Do all values of the common headers match?
+\li         \If $r1[commonHeaders] == r2[commonHeaders]$ \Then
+\li             $mergedRow \gets $ \textbf{new} Row
+\li             $mergedRow.values \gets r1.values \cup r2.values$
+\li             $mergedRow.probability \gets r1.probability \cdot r2.probability$
+\li         \Else
+\li             \textbf{continue}
+            \End
+        \End
+    \End
+\zi
+\li \Return $mergedTable$
+\end{codebox}
+\subsection{Normalize}
+Normalization is the final step of our algorithm, and is there to guarantee that all probabilities in a probability-table sum up to $1$. Therefore, the method \textsc{normalize} is fairly straight forward, as it takes a table as input and then divides all probabilities by the sum of probabilities. This method will return a new normalized table.
+\begin{codebox}
+\Procname{$\proc{normalize}(table)$}
+\li $newTable \gets $ \textbf{new} ProbabilityTable
+\li $newTable.headers \gets table.headers$ \Comment Copy all headers.
+\li $sum \gets 0$
+\li \For each $row \in table.rows$ \Comment Calculate the sum of all probabilities. \Do
+\li     $sum \gets sum + row.probability$
+    \End
+\li \For each $row \in table.rows$ \Comment Divide each probability by the sum. \Do
+\li     $normalizedRow \gets $ \textbf{new} Row
+\li     $normalizedRow.probability \gets row.probability$ / $sum$
+\li     $normalizedRow.values \gets row.values$
+\li     $newTable$.{\sc addRow}($normalizedRow$)
     \End
 \li \Return $newTable$
 \end{codebox}
-\subsubsection{Pointwise multiplication}
-+ pseudocode of multiply
-\subsubsection{Elimination}
-+ pseudocode
 \section{Results}
 In this section we discuss the results of our implementation by comparing them to the results of the PIT system for the burglary Bayesian network. When executed, we find the values for the queries given in table \ref{tableburglary}.
 \begin{table}[H]
@@ -147,37 +193,34 @@ P( Alarm=yes $|$ Earthquake=yes ) & 0.2907 & 0.2903 \\
 P( John=yes $|$ Earthquake=yes, Burglary=yes ) & 0.8575 & 0.8575 \\ 
 \hline 
 \end{tabular} 
-\caption{Results of queries on the burglary Bayesian network using our implementation and the PIT system}
+\caption{Results of queries on the burglary network using our implementation and the PIT system}
 \label{tableburglary}
 \end{table}
+We can see that the probability seems correct. The small variations in the probabilities are due to rounding the values. Next, we use our implementation to answer some queries for the \emph{BirthAsphyxia} network. The results for some example queries can be found in the query execution down below.
+\begin{verbatim}
+>> P( BirthAsphyxia | CardiacMixing=Mild, CO2=Low )
+(yes = 0.1405, no = 0.8595)
 
-We can see that the probability seems correct. The small variations in the probabilities are due to rounding the values.
+>> P( ChestXray | Grunting=yes )
+(
+ normal = 0.1483, Oligaemic = 0.2329, Plethoric = 0.1336, 
+ Grd_Glass = 0.151, Asy/Patchy = 0.3342
+)
 
-Next, we use our implementation to answer some queries for the BirthAsphyxia network. The results  for some example queries can be found in table \ref{tablespiegelhalter}.
+>> P( RUQO2 | HypoxiaInO2=Severe )
+(<5 = 0.5, 5-12 = 0.4, 12+ = 0.1)
 
-\begin{table}[H]
-\begin{tabular}{|p{9cm}|p{7cm}|}
-\hline 
-\textbf{Query} & \textbf{Probability Distribution} \\ 
-\hline 
-P( BirthAsphyxia $|$ CardiacMixing=Mild, CO2=Low ) & (yes = 0.1405, no = 0.8595) \\ 
-\hline 
-P( ChestXray $|$ Grunting=yes ) & (normal = 0.1483, Oligaemic = 0.2329, Plethoric = 0.1336, Grd\_Glass = 0.151, Asy/Patchy = 0.3342) \\ 
-\hline 
-P( RUQO2 $|$ HypoxiaInO2=Severe ) & ($<$5 = 0.5, 5-12 = 0.4, 12+ = 0.1) \\ 
-\hline 
-P( Disease $|$ GruntingReport=yes, LowerBodyO2=5-12, RUQO2=12+, CO2Report=$>$=7.5, XrayReport=Plethoric ) & (PFC = 0.0839, TGA = 0.3402, Fallot = 0.1565, PAIVS = 0.1225, TAPVD = 0.1084, Lung = 0.1885) \\ 
-\hline 
-\end{tabular} 
-\caption{Results for some example queries found by our implementation}
-\label{tablespiegelhalter}
-\end{table}
-
+>> P( Disease | GruntingReport=yes, LowerBodyO2=5-12,
+>>              RUQO2=12+, CO2Report=>=7.5, XrayReport=Plethoric )
+(
+ PFC = 0.0839, TGA = 0.3402, Fallot = 0.1565,
+ PAIVS = 0.1225, TAPVD = 0.1084, Lung = 0.1885
+)
+\end{verbatim}
 \section{Contributions}
 During the coding of this assignment, we did most of the code together, in order to both think about the correct implementation and make it more probable to find bugs early on. In this way we can also discuss certain decisions quickly. This report has been written by us together, meaning that we made some sections by ourselves and then checked each others sections to improve them.
 \section{Manual}
 In this section, we give a short manual on how to reproduce the results of the project. 
-
 \begin{enumerate}
 \item Run the program
 \item Provide a query in the form "P(" \emph{QueryVar} "$|$" $<$\emph{Var}$=$\emph{Value}$>^+$ ")"
