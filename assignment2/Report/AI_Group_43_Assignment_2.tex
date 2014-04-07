@@ -1,0 +1,38 @@
+\documentclass[10pt,a4paper]{article}
+\usepackage[latin1]{inputenc}
+\usepackage{a4wide, graphicx, clrscode3e, parskip, float}
+\author{J.P.H. Snoeren (0772658) \and R. Stoof (0767157)}
+\date{\today}
+\title{2IDC0 Artificial Intelligence: Machine Learning}
+\begin{document}
+\maketitle
+\textbf{intro} 
+
+\section{Classifiers}
+discuss two algo's : knn and decision trees. do not dicuss results in this section but in section "Results".
+\subsection{K-nearest neighbour}
+talk about knn implementation.
+\subsection{Decision trees}
+discuss decision trees and extensions + algo's + possible dependencies between extensions
+\subsubsection{Entropy + information}
+just say we implemented entropy and state 0log0 = 0
+\subsubsection{Decision trees for discrete variables}
+implementation first decision tree with discrete variables.
+\subsubsection{Pruning}
+implementation of pruning
+\subsubsection{Decision trees for continuous variables}
+discuss "granularity of data". Especially mention the way we determine the value on which to split.
+\subsubsection{Building a random forest}
+Mention that we divided our dataset in a round robin fashion and discuss how we build the trees.
+\subsubsection{Additional features}
+Mention additional features we came up with.
+
+\section{Results}
+Have fancy tables and pictures (graphs?) and compare the results. Especially error rate. 
+
+\section{Contributions}
+blabla
+
+\section{Manual}
+depends on how we are going to present the results. Maybe GUI for easy use, maybe command line or something for easy programming :)
+\end{document}

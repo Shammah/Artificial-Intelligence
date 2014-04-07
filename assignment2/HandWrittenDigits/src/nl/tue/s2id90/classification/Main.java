@@ -70,7 +70,7 @@ public class Main {
         DecisionTree43<ImageFeatures<Double>, Byte> tree;
         System.out.println("building tree");
         tree = new DecisionTree43<>(trainingData);
-        System.out.println("prune");
+        System.out.println("prune " + tree.errorRate(testDataset));
         tree.prune(testData);
         System.out.println("classifying");
         new ConfusionMatrixPanel(testData, tree.getConfusionMatrix(testDataset)).showIt();
