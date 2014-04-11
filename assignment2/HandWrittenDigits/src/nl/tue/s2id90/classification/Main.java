@@ -35,10 +35,12 @@ public class Main {
     private static LabeledDataset2 testData, trainingData;
 
     /** Size of the training data for handwritten digits */
-    private final static int TRAININGSIZE = 1000;
+    private final static int TRAININGSIZE = 15000; 
 
     /** Number of trees used in the random forest */
     private final static int NRTREES = 5;
+
+    private static List<LabeledImage> trainingImages, testImages;
 
     public static void main(String[] a) {
         treeDigits();
@@ -75,6 +77,20 @@ public class Main {
         tree.prune(testData);
         System.out.println("classifying");
         new ConfusionMatrixPanel(testData, tree.getConfusionMatrix(testDataset)).showIt();
+        treeDigits2();
+    }
+
+    public static void treeDigits2() {
+        System.out.println("reading data");
+        readDigitData2();
+        // Runs the decision tree algorithm and show the confusion matrix.
+        DecisionTree43<ImageFeatures<Double>, Byte> tree;
+        System.out.println("building tree");
+        tree = new DecisionTree43<>(trainingData);
+        System.out.println("prune " + tree.errorRate(testDataset));
+        tree.prune(testData);
+        System.out.println("classifying");
+        new ConfusionMatrixPanel(testData, tree.getConfusionMatrix(testDataset)).showIt();
     }
 
     public static void randomForestDigits() {
@@ -96,7 +112,6 @@ public class Main {
     private static void readDigitData() {
          try {
             // Load test and training data.
-            List<LabeledImage> trainingImages, testImages;
             trainingImages = HandWrittenDigits.getTrainingData(TRAININGSIZE, true);
             testImages = HandWrittenDigits.getTestData();
 
@@ -120,5 +135,25 @@ public class Main {
         } catch (IOException ex) {
             Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+
+    public static void readDigitData2() {
+            // Convert training data to a format that Classifier understands.
+            trainingDataset = new HashMap<>();
+            for (LabeledImage image : trainingImages) {
+                trainingDataset.put(new Doubles(image), image.getLabel());
+            }
+
+            testDataset = new HashMap<>();
+            for (LabeledImage image : testImages) {
+                testDataset.put(new Doubles(image), image.getLabel());
+            }
+
+            // Create dataset for confusion matrix.
+            testData = new LabeledDataset2();
+            testData.putAll(testDataset);
+
+            trainingData = new LabeledDataset2();
+            trainingData.putAll(trainingDataset);
     }
 }
