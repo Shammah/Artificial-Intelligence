@@ -148,32 +148,43 @@ public class Main {
     public static void digits(String strategy) throws IOException {
         readDigitData();
         
-        if (strategy.equals("decision")) {
-            // Runs the decision tree algorithm and show the confusion matrix.
-            DecisionTree43<ImageFeatures<Double>, Byte> tree;
-            System.out.println("Building decision tree ...");
-            
-            tree = new DecisionTree43<>(trainingData);
-            System.out.println("Error Rate: " + tree.errorRate(testDataset));
-            System.out.println("Pruning ...");
-            tree.prune(testData);
-            
-            System.out.println("Classifying ...");
-            new ConfusionMatrixPanel(testData, tree.getConfusionMatrix(testDataset)).showIt();
-        } else if (strategy.equals("random")) {
-            RandomForest<ImageFeatures<Double>, Byte> forest;
-            System.out.println("Building random forest tree ...");
-            forest = new RandomForest<>(trainingData, NRTREES);
-            System.out.println("Classifying ...");
-            new ConfusionMatrixPanel(testData, forest.getConfusionMatrix(testDataset)).showIt();
-        } else {
-            // Runs the nearest neighbour algorithm and show the confusion matrix.
-            System.out.println("------------------------");
-            System.out.println("k = ?");
-            System.out.println("------------------------");
-            int k = Math.max(1, input.nextInt());
-            KNN43 knn = new KNNDigits(trainingDataset, k);
-            new ConfusionMatrixPanel(testData, knn.getConfusionMatrix(testDataset)).showIt();
+        switch (strategy) {
+            case "decision":
+                // Runs the decision tree algorithm and show the confusion matrix.
+                DecisionTree43<ImageFeatures<Double>, Byte> tree;
+                
+                System.out.println("Building decision tree ...");
+                tree = new DecisionTree43<>(trainingData);
+                
+                System.out.println("Error Rate: " + tree.errorRate(testDataset));
+                System.out.println("Pruning ...");
+                tree.prune(testData);
+                
+                System.out.println("Classifying ...");
+                new ConfusionMatrixPanel(testData, tree.getConfusionMatrix(testDataset)).showIt();
+                break;
+                
+            case "random":
+                RandomForest<ImageFeatures<Double>, Byte> forest;
+                
+                System.out.println("Building random forest tree ...");
+                forest = new RandomForest<>(trainingData, NRTREES);
+                
+                System.out.println("Classifying ...");
+                new ConfusionMatrixPanel(testData, forest.getConfusionMatrix(testDataset)).showIt();
+                break;
+                
+            default:
+                // Runs the nearest neighbour algorithm and show the confusion matrix.
+                System.out.println("------------------------");
+                System.out.println("k = ?");
+                System.out.println("------------------------");
+                
+                int k = Math.max(1, input.nextInt());
+                
+                KNN43 knn = new KNNDigits(trainingDataset, k);
+                new ConfusionMatrixPanel(testData, knn.getConfusionMatrix(testDataset)).showIt();
+                break;
         }
     }
 
