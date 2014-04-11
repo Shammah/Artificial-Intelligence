@@ -11,7 +11,7 @@ import nl.tue.s2id90.classification.data.Features;
 import nl.tue.s2id90.classification.data.LabeledDataset2;
 import nl.tue.s2id90.classification.data.digits.HandWrittenDigits;
 import nl.tue.s2id90.classification.data.digits.LabeledImage;
-import nl.tue.s2id90.classification.data.digits.features.Doubles43;
+import nl.tue.s2id90.classification.data.digits.features.Doubles;
 import nl.tue.s2id90.classification.data.digits.features.ImageFeatures;
 import nl.tue.s2id90.classification.data.golf.GolfData;
 import nl.tue.s2id90.classification.data.ski.SkiData;
@@ -19,7 +19,6 @@ import nl.tue.s2id90.classification.decisiontree.DecisionTree43;
 import nl.tue.s2id90.classification.decisiontree.RandomForest;
 import nl.tue.s2id90.classification.knn.KNN43;
 import nl.tue.s2id90.classification.knn.KNNDigits;
-import nl.tue.s2id90.classification.knn.KNNGolf;
 import nl.tue.s2id90.classification.labeledtree.DotUtil;
 
 /**
@@ -198,12 +197,12 @@ public class Main {
             // Convert training data to a format that Classifier understands.
             trainingDataset = new HashMap<>();
             for (LabeledImage image : trainingImages) {
-                trainingDataset.put(new Doubles43(image), image.getLabel());
+                trainingDataset.put(new Doubles(image), image.getLabel());
             }
 
             testDataset = new HashMap<>();
             for (LabeledImage image : testImages) {
-                testDataset.put(new Doubles43(image), image.getLabel());
+                testDataset.put(new Doubles(image), image.getLabel());
             }
 
             // Create dataset for confusion matrix.

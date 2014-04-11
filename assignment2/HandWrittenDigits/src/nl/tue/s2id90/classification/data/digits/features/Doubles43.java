@@ -18,8 +18,8 @@ public class Doubles43 extends Doubles {
         for (Double value : values) {
             valuesList.add(value);
         }
-
-        valuesList.add(average());
+        System.out.println(nrBlack());
+        valuesList.add(nrBlack());
         values = new Double[values.length + 1];
         int i = 0;
         for (Object value : valuesList) {
@@ -38,6 +38,21 @@ public class Doubles43 extends Doubles {
             result += value;
         }
         result = result / values.length;
+        return result;
+    }
+
+    /**
+     * Returns the number of black pixels. A pixel is considered black if it is
+     * more black than white. That is if the value of the pixel is more than
+     * 255/2 = 128.
+     * @return the number of black pixels
+     */
+    public double nrBlack() {
+        int result = 0;
+        for (Double value : values) {
+            if (value < 128) //pixel is black
+            result += 1;
+        }
         return result;
     }
 
