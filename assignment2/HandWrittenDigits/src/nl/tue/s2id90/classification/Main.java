@@ -12,6 +12,7 @@ import nl.tue.s2id90.classification.data.digits.DigitsUtil;
 import nl.tue.s2id90.classification.data.digits.HandWrittenDigits;
 import nl.tue.s2id90.classification.data.digits.LabeledImage;
 import nl.tue.s2id90.classification.data.digits.features.Doubles;
+import nl.tue.s2id90.classification.data.digits.features.Doubles43;
 import nl.tue.s2id90.classification.data.digits.features.ImageFeatures;
 import nl.tue.s2id90.classification.data.golf.GolfData;
 import nl.tue.s2id90.classification.data.ski.SkiData;
@@ -99,18 +100,15 @@ public class Main {
             trainingImages = HandWrittenDigits.getTrainingData(TRAININGSIZE, true);
             testImages = HandWrittenDigits.getTestData();
 
-            // Show test data.
-            DigitsUtil.showImages("testData", testImages.subList(0, 25), 5);
-
             // Convert training data to a format that Classifier understands.
             trainingDataset = new HashMap<>();
             for (LabeledImage image : trainingImages) {
-                trainingDataset.put(new Doubles(image), image.getLabel());
+                trainingDataset.put(new Doubles43(image), image.getLabel());
             }
 
             testDataset = new HashMap<>();
             for (LabeledImage image : testImages) {
-                testDataset.put(new Doubles(image), image.getLabel());
+                testDataset.put(new Doubles43(image), image.getLabel());
             }
 
             // Create dataset for confusion matrix.

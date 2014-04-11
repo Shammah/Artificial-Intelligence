@@ -7,7 +7,7 @@ import nl.tue.s2id90.classification.data.digits.LabeledImage;
 /**
  * This class is used as a wrapper around a LabeledImage to convert the image
  * to a feature vector. Some inner classes are provided for obtaining the data
- * in a specific type. See below for an example usage.  
+ * in a specific type. See below for an example usage.
  * <pre>
  *{@code
  * LabeledImage image = ...

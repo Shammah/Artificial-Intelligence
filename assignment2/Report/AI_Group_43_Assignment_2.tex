@@ -1,29 +1,91 @@
 \documentclass[10pt,a4paper]{article}
 \usepackage[latin1]{inputenc}
-\usepackage{a4wide, graphicx, clrscode3e, parskip, float}
+\usepackage{a4wide, graphicx, clrscode3e, parskip, float, amsmath}
 \author{J.P.H. Snoeren (0772658) \and R. Stoof (0767157)}
 \date{\today}
 \title{2IDC0 Artificial Intelligence: Machine Learning}
 \begin{document}
 \maketitle
-\textbf{intro} 
+\textbf{In this report we describe how we applied techniques of machine learning and data mining to classify handwritten digits. We used two main classifiers to classify the digits: the $k$-nearest neighbour algorithm and decision trees. We also discuss various extensions on the decision trees, which help to decrease the error rate. Afterwards we discuss the results of both classifiers and their extensions to find proper parameter settings and compare between the classifiers.} 
 
 \section{Classifiers}
-discuss two algo's : knn and decision trees. do not dicuss results in this section but in section "Results".
-\subsection{K-nearest neighbour}
-talk about knn implementation.
+In this section we will discuss the two algorithms that we implemented: the $k$-nearest neighbour algorithm and decision trees. Then we discuss how we handled discrete and continuous variables, how we implemented pruning and how building a forest of decision trees might help improve the error rate. Finally we discuss certain additional features that we add to the data to reduce the error rate even more.
+\subsection{$k$-nearest neighbour}
+The nearest neighbour algorithm is conceptually very simple. We have some training data which is already classified. If we want to classify a new feature vector, we simply find the feature vector in the training data which is closest to our new feature vector. The $k$-nearest neighbour algorithm uses a small extension: We find the $k$ closest feature vectors and see which classes they belong to. Then we choose the class which is most common among these feature vectors. 
+
+Although the main idea is conceptually very simple, there are two problems to overcome when implementing this algorithm. Firstly, we need to define the distance between two feature vectors. We can do so by using the sum of squared differences. That is, we define the distance as follows.
+\begin{equation*}
+d(x,y) = \sum_{i=1}^n (x_i - y_i)^2 
+\end{equation*}
+In this equation $n$ is the number of attributes the feature vector has and $x_i$ and $y_i$ denote the $i^{th}$ attribute of feature vector $x$ and $y$, respectively. If we have discrete data with a small number of possible values, we might want to define the distance between two \emph{attributes} a certain constant if they are not equal and 0 if they are equal. If there is a certain order which needs to be taken into account, we can use a different metric, dependent on the attributes themselves.
+
+Another problem to overcome is how to find the closest feature vector based on the distance defined above. This problem is easy to solve, but it is not easy to solve it \emph{efficiently}. In our implementation, we compute the distance to all feature vectors and sort them afterward. Then we pick the $k$ closest feature vectors in the sorted list. Every time we add a new feature vector, we need to compute the distances to all other vectors. Since the number of feature vectors in the training data has to be quite high, it might take a while to classify the test data.
+
+Algorithm \textsc{k-Nearest-Neighbour} takes as input a new feature vector $v$ and computes the classification of $v$ by computing the distances, sorting them and picking the $k$ closest feature vectors. It returns the most common class of these $k$ feature vectors.
+
+\begin{codebox}
+\Procname{$\proc{k-Nearest-Neighbour} (k, v)$} 
+\li Let \id{D} be a new array with length the size of the training data
+\li \For all feature vectors \id{x} in the training data \Do
+\li	$\id{d} = \sum{i=1}^n (x_i - v_i)^2$
+\li	add \id{d} to \id{D}
+\End
+\li Sort \id{D} and remove all vectors except the $k$ closest
+\li \Return the most common class among the vectors in \id{D}
+\end{codebox}
 \subsection{Decision trees}
-discuss decision trees and extensions + algo's + possible dependencies between extensions
-\subsubsection{Entropy + information}
-just say we implemented entropy and state 0log0 = 0
+Another method of classifying is decision trees. The basic idea of a decision tree is to build a tree on the training data. When we obtain a new feature vector, we can traverse the tree according to the labels on the edges of the tree until we end up in a leaf of the tree. Each leaf has a classification label, which we assign to the feature vector that ended up in that leaf. In the following subsections, we discuss how we implemented decision trees and various extensions of decision trees. Decision tree classification consists of two parts: building the tree and classification of new feature vectors. Classifying new data is very simple, since we can just traverse the tree along the edges that are on the tree until we end up in a leaf. The harder part of the classification is building the tree. Therefore, the extensions that we discuss are all related to the building of the tree.
+\subsubsection{Entropy and information gain}
+To build a decision tree, we need to determine on which attribute the data should be split. The attribute we need to choose is the attribute with the maximum information gain. To compute the information gain we need to compute the entropy, so we implement this in our program. We use the following formulas for the entropy $H(\textbf{p})$ and the information gain $G(D,A)$:
+\begin{equation*}
+H(p_1, \dots, p_k) = -\sum p_i\log_2p_i\\
+G(D,A) = H(D) - \sum_{i=1}^n \frac{|D_i|}{|D|} H(D_i)
+\end{equation*}
+In these equations \textbf{p} is a probability distribution, $D$ is the complete training data set and $A$ is an attribute on which we want to split the data. In our formulation of entropy we define $\log_0 0 = 0$.
 \subsubsection{Decision trees for discrete variables}
-implementation first decision tree with discrete variables.
-\subsubsection{Pruning}
-implementation of pruning
+Now that we have set up our basic tools, we are ready to build the decision tree. 
+
+Algorithm \textsc{BuildDecisionTree} simply finds the feature which gives the highest information gain by linear search. Then we split the data set according to this feature. We repeat this recursively until we end up at a leaf. We know that we have hit a leaf when the information gain is 0 for all features. The input of the algorithm is the training data set $D$. 
+
+\begin{codebox}
+\Procname{$\proc{BuildDecisionTree}(D)$}
+\li Let \id{A} be the attribute with the maximum information gain
+\li \If G(D,A) = 0 \Then
+\li this node becomes a leaf node with the most frequent class 
+\li	\Else
+	this node becomes an internal node with attribute \id{A}
+\li split \id{D} in $k$ parts \id{D_i} if \id{A} is $k$-valued
+\li \For $i \gets 1 \to k$ \Do
+\li 	\If all feature vectors belong to the same class \Then
+\li	create a leaf node with that class
+\li	\Else
+	\textsc{BuildDecisionTree($D_i$)}
+	\End
+	\End
+\End
+\end{codebox}
+
+Now that the tree has been built, we can use \textsc{Classify} to classify a feature vector according to the tree. Its input is a feature vector $v$ and the root of the (sub)tree $root$.
+
+\begin{codebox}
+\Procname{$\proc{Classify} (v, root)$}
+\li \While \id{root} is not a leaf \Do
+\li 	\id{root} = the subtree of \id{root} with the value of $v$
+	\End
+\li 	\Return the label of \id{root}
+\end{codebox}
+
 \subsubsection{Decision trees for continuous variables}
-discuss "granularity of data". Especially mention the way we determine the value on which to split.
+The features of the digits are not discrete, but continuous features. If we would use the decision tree without making any modifications, we would split the data set in a very large number of smaller data sets and have no way to generalize the results. We need something to handle continuous features. Our approach to handle continuous attribute $A$ is to find a certain value $c$ and split the data set in two parts: one where the value of $A$ is $\leq c$ and one where the value of $A$ is $> c$. We can see the problem laid out for us clearly: How to find this value $c$? We can use several approaches. We can use the best value in terms of maximal gain. That is, we compute the gain for each value in the training data and pick the best one. A disadvantage of this approach is that it take quite some time for a large training data set. Other options are computed faster, but may lead to worse results. We can use the average of the training data , or the mean. Experimentation with the results should point out which option is the best to use. If possible, we would use the first option, but it might take too much time. 
+
+Building the tree and classifying is done in the same way as for discrete attributes. The difference in classification is that we check whether the value is smaller or larger, instead of inspecting the discrete value.
+\subsubsection{Pruning}
+At this point we can classify the digits using decision trees and obtain a certain error rate when we classify test data on the decision tree. We can come up with some ways to improve this error rate. A first attempt is pruning. The concept is as follows. We have built a decision tree based on the training data, but this decision tree might be victim to \emph{overfitting}. That is, if we would prune certain parts of our decision trees (probably parts at the bottom of the tree), our tree might generalize somewhat better to the test data and other real data and the error rate might improve. 
+
+Pruning works as follows. We visit the nodes in the tree using a postorder tree walk. We prune the tree and compute the error rate again. If the error rate improved, we use the pruned tree. Otherwise we reverse the action.
 \subsubsection{Building a random forest}
-Mention that we divided our dataset in a round robin fashion and discuss how we build the trees.
+Another way to improve the error rate is by building multiple decision trees instead of one. First we split the training data in $k$ partitions and build $k$ decision trees. When classifying the data, we classify according to all decision trees and we choose the class that was the result in most decision trees. In our implementation, we partitioned the data using a round robin fashion.
+
 \subsubsection{Additional features}
 Mention additional features we came up with.
 
@@ -31,7 +93,7 @@ Mention additional features we came up with.
 Have fancy tables and pictures (graphs?) and compare the results. Especially error rate. 
 
 \section{Contributions}
-blabla
+We worked on the code simultaneously. We did certain parts of the code both together, while some of them have been written alone. If one person typed the code, the other one always looked at it to see whether it made sense. The test cases also helped greatly in finding errors in the code and gaining trust in certain code. This report has been written and checked by both of us.
 
 \section{Manual}
 depends on how we are going to present the results. Maybe GUI for easy use, maybe command line or something for easy programming :)
