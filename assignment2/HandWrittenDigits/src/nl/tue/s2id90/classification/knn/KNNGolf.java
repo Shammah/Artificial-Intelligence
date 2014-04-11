@@ -15,7 +15,7 @@ public class KNNGolf extends KNN43 {
     /**
      * Constructor.
      * @param trainingData training data
-     * @param k parameter of k nearest neighbours
+     * @param k parameter of k nearest neighbors
      * @throws IOException
      */
     public KNNGolf(Map trainingData, int k) throws IOException {
@@ -23,7 +23,7 @@ public class KNNGolf extends KNN43 {
     }
 
     /**
-     * Commputes the distance by a combination of discrete and continuous
+     * Computes the distance by a combination of discrete and continuous
      * variables.
      * @param f0
      * @param f1

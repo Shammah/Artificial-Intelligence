@@ -4,14 +4,13 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import nl.tue.s2id90.classification.data.Features;
 import nl.tue.s2id90.classification.data.LabeledDataset2;
-import nl.tue.s2id90.classification.data.digits.DigitsUtil;
 import nl.tue.s2id90.classification.data.digits.HandWrittenDigits;
 import nl.tue.s2id90.classification.data.digits.LabeledImage;
-import nl.tue.s2id90.classification.data.digits.features.Doubles;
 import nl.tue.s2id90.classification.data.digits.features.Doubles43;
 import nl.tue.s2id90.classification.data.digits.features.ImageFeatures;
 import nl.tue.s2id90.classification.data.golf.GolfData;
@@ -20,6 +19,7 @@ import nl.tue.s2id90.classification.decisiontree.DecisionTree43;
 import nl.tue.s2id90.classification.decisiontree.RandomForest;
 import nl.tue.s2id90.classification.knn.KNN43;
 import nl.tue.s2id90.classification.knn.KNNDigits;
+import nl.tue.s2id90.classification.knn.KNNGolf;
 import nl.tue.s2id90.classification.labeledtree.DotUtil;
 
 /**
@@ -35,62 +35,146 @@ public class Main {
     private static LabeledDataset2 testData, trainingData;
 
     /** Size of the training data for handwritten digits */
-    private final static int TRAININGSIZE = 1000;
+    private static int TRAININGSIZE = 1000;
 
     /** Number of trees used in the random forest */
-    private final static int NRTREES = 5;
+    private static int NRTREES = 5;
+    
+    private static final Scanner input = new Scanner(System.in);
 
-    public static void main(String[] a) {
-        treeDigits();
+    public static void main(String[] a) throws IOException {
+        String strategy = "";
+        String data     = "";
+        
+        System.out.println("------------------------");
+        System.out.println("Welcome to assignment 3 of Group43 for Artificial "
+                + "Intelligence.\nIn this menu, you will be given various options "
+                + "on what you want to calculate. What would you like to do?");
+        System.out.println("------------------------");
+        System.out.println("1) k-Nearest Neighbour");
+        System.out.println("2) Decision Tree");
+        System.out.println("3) Random Forest");
+        System.out.println("------------------------");
+        
+        // Ask for strategy.
+        switch(input.nextInt()) {
+            case 1:
+                strategy = "knn";
+                break;
+            case 2:
+                strategy = "decision";
+                break;
+            case 3:
+                strategy = "random";
+        }
+        
+        // Ask for data type.
+        System.out.println("------------------------");
+        System.out.println("Which dataset do you want to classify?");
+        System.out.println("------------------------");
+        System.out.println("1) Handwritten Digits");
+        System.out.println("2) Golf");
+        System.out.println("3) Ski");
+        
+        switch(input.nextInt()) {
+            case 1:
+                data = "digits";
+                break;
+            case 2:
+                data = "golf";
+                break;
+            case 3:
+                data = "ski";
+        }
+        
+        // Ask for the size of the dataset if we use handwritten digits.
+        if (data.equals("digits")) {
+            System.out.println("------------------------");
+            System.out.println("How many handwritten digits do you want in your training data?");
+            System.out.println("------------------------");
+            TRAININGSIZE = Math.max(0, Math.min(input.nextInt(), 15000));
+        }
+        
+        // Ask for the number of trees.
+        if (strategy.equals("random")) {
+            System.out.println("------------------------");
+            System.out.println("The number of random trees = ?");
+            System.out.println("------------------------");
+            NRTREES = Math.max(1, input.nextInt());
+        }
+        
+        switch(data) {
+            case "golf":
+                golf(strategy);
+                break;
+            case "ski":
+                ski(strategy);
+                break;
+            case "digits":
+                digits(strategy);
+        }
     }
 
-    public static void golf() {
-        GolfData data = new GolfData();
-        // Create dataset for confusion matrix.
-        LabeledDataset2 dataSet = new LabeledDataset2();
-        dataSet.putAll(data.getClassification());
+    public static void golf(String strategy) {
+        if (strategy.equals("decision")) {
+            GolfData data = new GolfData();
+            
+            // Create dataset for confusion matrix.
+            LabeledDataset2 dataSet = new LabeledDataset2();
+            dataSet.putAll(data.getClassification());
 
-        DecisionTree43<Features, GolfData.PLAY> tree = new DecisionTree43<>(dataSet);
-        DotUtil.showDotInFrame(tree.toDot(), "Golf");
+            DecisionTree43<Features, GolfData.PLAY> tree = new DecisionTree43<>(dataSet);
+            DotUtil.showDotInFrame(tree.toDot(), "Golf");
+        } else {
+            System.out.println("To be implemented");
+        }
     }
 
-    public static void ski() {
-        SkiData data = new SkiData();
-        // Create dataset for confusion matrix.
-        LabeledDataset2 dataSet = new LabeledDataset2();
-        dataSet.putAll(data.getClassification());
+    public static void ski(String strategy) {
+        if (strategy.equals("decision")) {
+            SkiData data = new SkiData();
+            
+            // Create dataset for confusion matrix.
+            LabeledDataset2 dataSet = new LabeledDataset2();
+            dataSet.putAll(data.getClassification());
 
-        DecisionTree43<Features, SkiData.SKIING> tree = new DecisionTree43<>(dataSet);
-        DotUtil.showDotInFrame(tree.toDot(), "Ski");
+            DecisionTree43<Features, SkiData.SKIING> tree = new DecisionTree43<>(dataSet);
+            DotUtil.showDotInFrame(tree.toDot(), "Ski");
+        } else {
+            System.out.println("To be implemented");
+        }
     }
 
-    public static void treeDigits() {
-        System.out.println("reading data");
+    public static void digits(String strategy) throws IOException {
         readDigitData();
-        // Runs the decision tree algorithm and show the confusion matrix.
-        DecisionTree43<ImageFeatures<Double>, Byte> tree;
-        System.out.println("building tree");
-        tree = new DecisionTree43<>(trainingData);
-        System.out.println("prune " + tree.errorRate(testDataset));
-        tree.prune(testData);
-        System.out.println("classifying");
-        new ConfusionMatrixPanel(testData, tree.getConfusionMatrix(testDataset)).showIt();
-    }
-
-    public static void randomForestDigits() {
-        readDigitData();
-        RandomForest<ImageFeatures<Double>, Byte> forest;
-        System.out.println("building tree");
-        forest = new RandomForest<>(trainingData, NRTREES);
-        System.out.println("classifying");
-        new ConfusionMatrixPanel(testData, forest.getConfusionMatrix(testDataset)).showIt();
-    }
-
-    public static void knnDigits() throws IOException {
-        readDigitData();
-        // Runs the nearest neighbour algorithm and show the confusion matrix.
-        KNN43 knn = new KNNDigits(trainingDataset, 50);
-        new ConfusionMatrixPanel(testData, knn.getConfusionMatrix(testDataset)).showIt();
+        
+        if (strategy.equals("decision")) {
+            // Runs the decision tree algorithm and show the confusion matrix.
+            DecisionTree43<ImageFeatures<Double>, Byte> tree;
+            System.out.println("Building decision tree ...");
+            
+            tree = new DecisionTree43<>(trainingData);
+            System.out.println("Error Rate: " + tree.errorRate(testDataset));
+            System.out.println("Pruning ...");
+            tree.prune(testData);
+            
+            System.out.println("Classifying ...");
+            new ConfusionMatrixPanel(testData, tree.getConfusionMatrix(testDataset)).showIt();
+        } else if (strategy.equals("random")) {
+            RandomForest<ImageFeatures<Double>, Byte> forest;
+            System.out.println("Building random forest tree ...");
+            forest = new RandomForest<>(trainingData, NRTREES);
+            System.out.println("Classifying ...");
+            new ConfusionMatrixPanel(testData, forest.getConfusionMatrix(testDataset)).showIt();
+        } else {
+            // Runs the nearest neighbour algorithm and show the confusion matrix.
+            System.out.println("------------------------");
+            System.out.println("k = ?");
+            System.out.println("------------------------");
+            int k = Math.max(1, input.nextInt());
+            KNN43 knn = new KNNDigits(trainingDataset, k);
+            new ConfusionMatrixPanel(testData, knn.getConfusionMatrix(testDataset)).showIt();
+        }
     }
 
     private static void readDigitData() {

@@ -7,6 +7,7 @@ import nl.tue.s2id90.classification.data.digits.features.ImageFeatures;
 
 /**
  * This class determines the distance for Images.
+ *
  * @author Group 43
  * @since 16-mrt-2014
  */
@@ -14,8 +15,9 @@ public class KNNDigits extends KNN43 {
 
     /**
      * Constructor.
+     *
      * @param trainingData training data
-     * @param k parameter of k nearest neighbours
+     * @param k parameter of k nearest neighbors
      * @throws IOException
      */
     public KNNDigits(Map trainingData, int k) throws IOException {
@@ -24,6 +26,7 @@ public class KNNDigits extends KNN43 {
 
     /**
      * Uses the sum of squared distance to compute the distance for Images.
+     *
      * @param f0 features of the first image
      * @param f1 features of the second image
      * @return the distance between the two feature vectors
