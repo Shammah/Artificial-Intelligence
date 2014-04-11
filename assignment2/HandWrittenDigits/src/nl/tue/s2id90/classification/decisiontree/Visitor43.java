@@ -7,7 +7,9 @@ import nl.tue.s2id90.classification.labeledtree.Visitor;
 
 /**
  *
- * @author J.P.H. Snoeren, 0772658
+ * @author Group43
+ * @param <F>
+ * @param <L>
  * @since 4-apr-2014
  */
 public class Visitor43<F extends Features, L> implements Visitor<Object, DecisionTree<F,L>> {
@@ -31,12 +33,21 @@ public class Visitor43<F extends Features, L> implements Visitor<Object, Decisio
 
     @Override
     public void visitNode(LabeledTree<Object, DecisionTree<F, L>> node) {
+        // Current tree node we are visiting.
         DecisionTree43<F,L> vertex = (DecisionTree43) node;
+        
+        // If the node is a leaf, we can't do any pruning.
         if (! vertex.isLeaf()) {
+            // Get the error-rate of the current tree.
             double errorRate = root.errorRate(testData.getClassification());
+            
+            // Get the error-rate of the tree where we prune a node, such that
+            // it becomes a leaf with the most frequent class as its classification.
             vertex.setLabel(vertex.getDataset().getMostFrequentClass());
             double errorRate2 = root.errorRate(testData.getClassification());
-            if (errorRate2 > errorRate) { // pruning is worse
+            
+            // If the pruning is wurse, we undo the pruning, else we continue visiting.
+            if (errorRate2 > errorRate) {
                 vertex.setLabel(null);
             } else {
                 numberPruned ++;
@@ -54,6 +65,6 @@ public class Visitor43<F extends Features, L> implements Visitor<Object, Decisio
 
     @Override
     public void visitEdge(LabeledTree<Object, DecisionTree<F, L>> parent, DecisionTree<F, L> child, Object label) {
-        //do nothing
+        // Do nothing.
     }
 }
