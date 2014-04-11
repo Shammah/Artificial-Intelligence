@@ -35,7 +35,7 @@ public class Main {
     private static LabeledDataset2 testData, trainingData;
 
     /** Size of the training data for handwritten digits */
-    private final static int TRAININGSIZE = 15000;
+    private final static int TRAININGSIZE = 1000;
 
     /** Number of trees used in the random forest */
     private final static int NRTREES = 5;

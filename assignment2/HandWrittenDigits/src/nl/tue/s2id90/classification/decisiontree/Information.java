@@ -1,9 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
 package nl.tue.s2id90.classification.decisiontree;
 
 /**
@@ -14,14 +8,16 @@ public abstract class Information {
     /**
      * @param p probability distribution
      * @pre \sum p = 1
-     * @return the entropy of the probability distribution p. **/
+     * @return the entropy of the probability distribution p.
+    **/
     public static double entropy(double ... p) {
         double result = 0;
+        
         for (int i = 0; i < p.length; i ++) {
             result += xlog2x(p[i]);
         }
+        
         return -1 * result;
-
     }
 
     /**
