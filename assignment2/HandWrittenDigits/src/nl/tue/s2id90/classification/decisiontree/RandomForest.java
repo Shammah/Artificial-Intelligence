@@ -88,7 +88,9 @@ public class RandomForest<V extends Features,T> implements Classifier<V, T>{
     }
 
     public void prune(LabeledDataset2<V,T> testData) {
-            throw new UnsupportedOperationException("Needs to be implemented");
+           for (DecisionTree<V,T> tree : trees) {
+               tree.prune(testData);
+           }
     }
 
     /**

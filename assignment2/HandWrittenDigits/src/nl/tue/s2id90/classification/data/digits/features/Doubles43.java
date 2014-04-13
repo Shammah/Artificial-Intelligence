@@ -18,7 +18,6 @@ public class Doubles43 extends Doubles {
         for (Double value : values) {
             valuesList.add(value);
         }
-        System.out.println(nrBlack());
         valuesList.add(nrBlack());
         values = new Double[values.length + 1];
         int i = 0;

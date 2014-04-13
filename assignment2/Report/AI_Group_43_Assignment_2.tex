@@ -27,7 +27,7 @@ Algorithm \textsc{k-Nearest-Neighbour} takes as input a new feature vector $v$ a
 \Procname{$\proc{k-Nearest-Neighbour} (k, v)$} 
 \li Let \id{D} be a new array with length the size of the training data
 \li \For all feature vectors \id{x} in the training data \Do
-\li	$\id{d} = \sum{i=1}^n (x_i - v_i)^2$
+\li	$\id{d} = \sum_{i=1}^n (x_i - v_i)^2$
 \li	add \id{d} to \id{D}
 \End
 \li Sort \id{D} and remove all vectors except the $k$ closest
@@ -39,6 +39,8 @@ Another method of classifying is decision trees. The basic idea of a decision tr
 To build a decision tree, we need to determine on which attribute the data should be split. The attribute we need to choose is the attribute with the maximum information gain. To compute the information gain we need to compute the entropy, so we implement this in our program. We use the following formulas for the entropy $H(\textbf{p})$ and the information gain $G(D,A)$:
 \begin{equation*}
 H(p_1, \dots, p_k) = -\sum p_i\log_2p_i\\
+\end{equation*}
+\begin{equation*}
 G(D,A) = H(D) - \sum_{i=1}^n \frac{|D_i|}{|D|} H(D_i)
 \end{equation*}
 In these equations \textbf{p} is a probability distribution, $D$ is the complete training data set and $A$ is an attribute on which we want to split the data. In our formulation of entropy we define $\log_0 0 = 0$.
@@ -87,14 +89,125 @@ Pruning works as follows. We visit the nodes in the tree using a postorder tree 
 Another way to improve the error rate is by building multiple decision trees instead of one. First we split the training data in $k$ partitions and build $k$ decision trees. When classifying the data, we classify according to all decision trees and we choose the class that was the result in most decision trees. In our implementation, we partitioned the data using a round robin fashion.
 
 \subsubsection{Additional features}
-Mention additional features we came up with.
+Adding additional features to the data might help to improve the error rate as well. Currently we only use the grayscale of each of the pixels of the picture, but adding more features which attempt to say something useful about the overall picture might help. First we tried to add the feature of the average grayscale of the pixels in the pciture. After running several test runs, we notice that the error rate went up slightly instead of decreased, so we concluded this might not be a very good extra feature. 
+
+Another feature we came up with is the number of "dark" pixels in the picture. A pixel is dark if its grayscale is more black than white. After running several test runs, we saw that in some cases the error rate actually decreased, but for others it increased. Unfortunately, it turned out that the error rate increased in most of the test runs we did. 
+
+A third attempt for extra features is to add both previously mentioned features to the digits. It turned out that the error rate decreased for all of our test runs. Since none of the additional features we came up with proved very useful, we had to decide to not add any additional features.
 
 \section{Results}
-Have fancy tables and pictures (graphs?) and compare the results. Especially error rate. 
+In this section we discuss and compare the results of the classifiers on the handwritten digits database. The results are given in terms of the error rate. The test data used consists of $10\ 000$ handwritten digits.
+
+\subsection{$k$-nearest Neighbour}
+First we look at the error rate produced by the $k$-nearest neighbour classifier. The $k$-nearest neighbour algorithm takes two parameters as input: the size of the training data and $k$, the number of neighbours that we will consider. Table \ref{knn} displays the error rate for different sizes of the training data and for different values of $k$, where it is attempted to optimize the error rate. This optimization is done manually.
+
+\begin{table}[H]
+\begin{tabular}{|c|c|c|}
+\hline 
+\textbf{k} & \textbf{Size of training data} & \textbf{Error rate} \\ 
+\hline 
+4 & $15\ 000$ & 0.0477 \\ 
+\hline 
+5 & $15\ 000$ & 0.0462 \\ 
+\hline 
+6 & $15\ 000$ & 0.0460 \\ 
+\hline 
+6 & $16\ 500$ & 0.0485 \\ 
+\hline 
+6 & $17\ 500$ & 0.0457 \\ 
+\hline 
+\textbf{6} & $\mathbf{18\ 000}$ & \textbf{0.0455} \\ 
+\hline 
+6 & $19\ 000$ & 0.047 \\ 
+\hline 
+6 & $20\ 000$ & 0.0471 \\ 
+\hline 
+7 & $15\ 000$ & 0.0488 \\ 
+\hline 
+7 & $17\ 500$ & 0.0463 \\ 
+\hline 
+7 & $20\ 000$ & 0.0468 \\ 
+\hline 
+\end{tabular} 
+\caption{Error rate using the $k$-nearest neighbour algorithm for various values of $k$ and the size of the training data}
+\label{knn}
+\end{table}
+As can be seen in table \ref{knn}, we get an error rate of 4.55$\%$ if we use $k=6$ and let the size of our training data be $18\ 000$ handwritten digits. It must be noted that this error rate depends on the particular training data and test data used. We are thus not claiming that this is an optimal parameter setting, only that it is a good one.
+\subsection{Decision trees}
+The decision tree classifier is only dependent on the size of the training data. We consider the decision tree classifier with pruning here. Table \ref{decisiontree} shows the error rate for various sizes of the training data used.
+
+\begin{table}[H]
+\begin{tabular}{|c|c|}
+\hline 
+\textbf{Size of training data} & \textbf{Error rate} \\ 
+\hline 
+$10\ 000$ & 0.156 \\ 
+\hline 
+$15\ 000$ & 0.1395 \\ 
+\hline 
+$17\ 000$ & 0.1365 \\ 
+\hline 
+$17\ 500$ & 0.1381 \\ 
+\hline 
+$18\ 000$ & 0.1349 \\ 
+\hline 
+$20\ 000$ & 0.1372 \\ 
+\hline 
+$\mathbf{21\ 000}$ & \textbf{0.1285} \\ 
+\hline 
+$22\ 000$ & 0.1330 \\ 
+\hline 
+$23\ 000$ & 0.1404 \\ 
+\hline 
+\end{tabular} 
+\caption{Error rate for the decision tree algorithm using various sizes of training data}
+\label{decisiontree}
+\end{table}
+This analysis reveals that a training size of around $21\ 000$ data points results in the lowest error rate. A way to improve this error rate is building multiple trees.
+\subsubsection{Random Forest}
+The technique of building a random forest brings another parameter into view: the number of trees generated. We again did a manual analysis on the error rate for different values of the two parameters. The results can be seen in table \ref{randomforest}.
+
+\begin{table}[H]
+\begin{tabular}{|c|c|c|}
+\hline 
+\textbf{Size of training data} & \textbf{Number of trees} & \textbf{Error rate} \\ 
+\hline 
+$15\ 000$ & 4 & 0.1563 \\ 
+\hline 
+$15\ 000$ & 5 & 0.1503 \\ 
+\hline 
+$15\ 000$ & 6 & 0.1489 \\ 
+\hline 
+$20\ 000$ & 5 & 0.1533 \\ 
+\hline 
+$20\ 000$ & 6 & 0.1491 \\ 
+\hline 
+$20\ 000$ & 7 & 0.1398 \\ 
+\hline 
+$20\ 000$ & 8 & 0.1373 \\ 
+\hline 
+$20\ 000$ & 9 & 0.1350 \\ 
+\hline 
+$20\ 000$ & 10 & 0.1366 \\ 
+\hline 
+$21\ 000$ & 9 & 0.1391 \\ 
+\hline 
+$\mathbf{21\ 000}$ & \textbf{10} & \textbf{0.1328} \\ 
+\hline 
+$21\ 000$ & 11 & 0.1346 \\ 
+\hline 
+$23\ 000$ & 8 & 0.1414 \\ 
+\hline 
+\end{tabular} 
+\caption{Error rate for the random forest using various sizes of the training data and number of trees built}
+\label{randomforest}
+\end{table}
+\subsection{Comparison}
+We see that the $k$-nearest neighbour algorithm outperforms the decision trees quite easily and classifies much more digits correctly. The problem with the $k$-nearest neighbour algorithm is that it takes quite some time to execute and that it is less clear how the classification is done than with the decision trees, which can be visualized much better. The decision tree classifier performs much poorer, but can be visualized. The approach using a random forest takes much less time to execute, since each tree is built faster. We did not use pruning in our implementation of the random forest, since we found that it increased the error rate rather than decreased it. Maybe with different parameter settings a lower error rate could be obtained using a random forest, but we did not find much use in pruning.
 
 \section{Contributions}
 We worked on the code simultaneously. We did certain parts of the code both together, while some of them have been written alone. If one person typed the code, the other one always looked at it to see whether it made sense. The test cases also helped greatly in finding errors in the code and gaining trust in certain code. This report has been written and checked by both of us.
 
 \section{Manual}
-depends on how we are going to present the results. Maybe GUI for easy use, maybe command line or something for easy programming :)
+The algorithms can be accessed using the console. When the main class is run, the user will see a number of options of which to choose from. The user can enter a number corresponding to the option or enter a number which is asked for in the question. First the user will be prompted for the algorithm to use. Then you will be asked which dataset to classify. Note that some datasets actually classify training data, while others simply show the decision tree learned from the training data. If the user chose to classify the handwritten digits, he is prompted for the size of the training data. Then the algorithm will run and show the results in the console or using panels.
 \end{document}
